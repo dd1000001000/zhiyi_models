@@ -5,7 +5,8 @@
 The models trained for [Zhiyi IME](https://github.com/dd1000001000/zhiyi_ime): word-choice models that rank candidates by the text before the caret and
 compose long pinyin into sentences, the word n-grams scored next to them, and the offline translation models of learning
 mode. The files are in the [releases](https://github.com/dd1000001000/zhiyi_models/releases); this repository has their descriptions and results. The training
-code and the training and test data are not published (copyright of third-party text).
+code and the training and test data are not published (copyright of third-party text), except the
+[neutral word-choice test set v2](benchmarks/neutral-v2), released for others to test on.
 
 ## Models
 
@@ -56,12 +57,19 @@ Candidates the learning-mode language packs lack are translated by a model on yo
 
 <img src="media/pos_head.en-US.svg" alt="Part-of-speech accuracy of Zhiyi v4-1026's head on ambiguous words: UD 2.18 test sets in 9 languages and hand-written Chinese and English pairs, against the most frequent tag, the head without context and GLM-5.3" width="100%">
 
+## Neutral word-choice test set v2
+
+7,108 Simplified Chinese pinyin word-choice items: text from Chinese web pages dated 2026, typed word by word, candidates from
+Zhiyi IME's engine, with a scorer; any model or IME that ranks candidates can be tested on it. Description, fields and usage in
+[benchmarks/neutral-v2](benchmarks/neutral-v2), the data in [release neutral-v2](https://github.com/dd1000001000/zhiyi_models/releases/tag/neutral-v2).
+
 ## License
 
 The weights of Zhiyi's own models (every word-choice model, offline translation v2, v3, v4 and v4-1026, ngram-ml-1024)
 are licensed under [Apache-2.0](LICENSE) (GPL-3.0-only until 2026-10-20); the word n-gram ng1017 is
 [LGPL-2.1-or-later](LICENSE-LGPL-2.1.txt), as its base; the `candle_ref/` reference code in the word-choice safetensors
-zips is GPL-3.0-only, like Zhiyi IME. Upstream parts keep their own licenses, carried in each zip.
+zips is GPL-3.0-only, like Zhiyi IME. Upstream parts keep their own licenses, carried in each zip. The database of the neutral word-choice test set v2 is
+[ODC-By 1.0](benchmarks/neutral-v2/LICENSE-DATA.txt); the web text belongs to its authors; its scorer is Apache-2.0.
 
 ## Credits
 

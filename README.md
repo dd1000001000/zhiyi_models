@@ -4,7 +4,7 @@
 
 [知意输入法](https://github.com/dd1000001000/zhiyi_ime)自己训练的模型：按光标前的文字给候选排序、把长拼音组成句子的选词模型，选词时一起打分的词语
 n-gram，以及学习模式里翻译候选的离线翻译模型。模型文件在各个 [Release](https://github.com/dd1000001000/zhiyi_models/releases) 里，这里是说明和评测结果。
-训练代码和训练、评测数据涉及第三方语料的版权，不公开。
+训练代码和训练、评测数据涉及第三方语料的版权，不公开；[中立选词测试集 v2](benchmarks/neutral-v2) 除外，供别人测试使用。
 
 ## 模型一览
 
@@ -55,12 +55,16 @@ ng1017+1.4V2-Long-L18 在 1.4V2-Long-L18 上加了一个词语 n-gram（三元�
 
 <img src="media/pos_head.zh-CN.svg" alt="知意 v4-1026 词性头在兼类词上的词性正确率：UD 2.18 测试集 9 种语言的兼类词和手写的中英文对照，与只按词频、不给上文的词性头和 GLM-5.3 对比" width="100%">
 
+## 中立选词测试集 v2
+
+7,108 行简体中文拼音选词题：文本是 2026 年的中文网页，按词打字，候选来自知意输入法引擎；附打分脚本，任何能给候选排序的模型或输入法都可以测。说明、字段和用法见 [benchmarks/neutral-v2](benchmarks/neutral-v2)，数据在 [Release neutral-v2](https://github.com/dd1000001000/zhiyi_models/releases/tag/neutral-v2)。
+
 ## 许可
 
 知意自己训练的模型（各版选词模型、离线翻译模型 v2、v3、v4、v4-1026、ngram-ml-1024）的权重按 [Apache-2.0](LICENSE) 发布
 （2026-10-20 前为 GPL-3.0-only）；词语 n-gram ng1017 随其底座按 [LGPL-2.1-or-later](LICENSE-LGPL-2.1.txt) 发布；
 选词模型 safetensors 压缩包里的 `candle_ref/` 参考代码和知意输入法一样按 GPL-3.0-only 发布。上游部分保持各自的许可，
-每个压缩包附带对应的许可证。
+每个压缩包附带对应的许可证。中立选词测试集 v2 的数据库按 [ODC-By 1.0](benchmarks/neutral-v2/LICENSE-DATA.txt) 发布，网页原文的版权归原作者，打分脚本按 Apache-2.0 发布。
 
 ## 致谢
 
