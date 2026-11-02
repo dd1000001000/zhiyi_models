@@ -57,7 +57,7 @@ ng1017+1.4V2-Long-L18 在 1.4V2-Long-L18 上加了一个词语 n-gram（三元�
 
 ## 中立选词测试集 v3
 
-16,656 行简体中文拼音选词题：文本是 2026 年 10 月的中文网页，按词打字；每行的候选来自八个开源输入法引擎（知意、Rime 雾凇拼音、Rime 朙月拼音、有墨、libpinyin、fcitx5 libime、青简、水杉）中随机的一个，取它的前 3–20 个，并注明输入法和版本；附打分脚本，可以按引擎分组看结果。说明、字段和用法见 [benchmarks/neutral-v3](benchmarks/neutral-v3)，数据在 [Release neutral-v3](https://github.com/dd1000001000/zhiyi_models/releases/tag/neutral-v3)。
+16,656 行简体中文拼音选词题：文本是 2026 年 10 月的中文网页，按词打字；每行的候选来自八个开源输入法引擎（知意、Rime 雾凇拼音、Rime 朙月拼音、幽默、libpinyin、fcitx5 libime、青简、水杉）中随机的一个，取它的前 3–20 个，并注明输入法和版本；附打分脚本，可以按引擎分组看结果。说明、字段和用法见 [benchmarks/neutral-v3](benchmarks/neutral-v3)，数据在 [Release neutral-v3](https://github.com/dd1000001000/zhiyi_models/releases/tag/neutral-v3)。
 
 ## 中立选词测试集 v2
 
