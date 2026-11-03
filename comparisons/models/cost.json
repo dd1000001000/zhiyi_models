@@ -53,5 +53,45 @@
   "file_mb": 4548.221488,
   "params": 1881825088,
   "macs_per_row": 123989678286.98344
+ },
+ "metasequoia-v1-4m": {
+  "file_mb": 4.48628,
+  "params": 4254720,
+  "macs_per_row": 211483766.90643048
+ },
+ "metasequoia-v1-25m": {
+  "file_mb": 25.480184,
+  "params": 24877440,
+  "macs_per_row": 2630601703.8490567
+ },
+ "rime-ai-ime-0.8b-lora": {
+  "file_mb": 811.843264,
+  "params": 752393024,
+  "macs_per_row": 15121229712.757797
+ },
+ "fujik0-qwen3.5-0.8b": {
+  "file_mb": 1746.9426,
+  "params": 752393024,
+  "macs_per_row": 15121229712.757797
+ },
+ "lime-qwen3-0.6b": {
+  "file_mb": 367.804096,
+  "params": 596049920,
+  "macs_per_row": 44516380785.55872
+ },
+ "cnmbert": {
+  "file_mb": 522.598464,
+  "params": 130641800,
+  "macs_per_row": 172583421642.92242
+ },
+ "qingjian-tongbian": {
+  "file_mb": 46.141208,
+  "params": 23037056,
+  "macs_per_row": 518080548.7439353
+ },
+ "qingjian-zhiwei": {
+  "file_mb": 56.044208,
+  "params": 27950272,
+  "macs_per_row": 2801934056.32345
  }
 }

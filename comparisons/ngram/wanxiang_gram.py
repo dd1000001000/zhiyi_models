@@ -9,6 +9,13 @@ darts-clone units, grammar::encode); nothing of Rime is run.
 - The candidate's best segmentation (Viterbi on the full score, whole preceding text as Rime's Line::context()).
 - ctx=True gives the row's context as preceding text (contextual_suggestions on; Wanxiang's default is off: False).
   wg = WanxiangGram(gram_path, dict_dir); wg.score(context, cands, ctx=True)
+
+Also Rime's own grammar (lotem/rime-octagram-data, branch hans: zh-hans-t-essay-bgw.gram, the "hans" model of its
+grammar.yaml, contextual_suggestions on): WanxiangGram(gram, essay="essay.txt", opencc=<dir>, cfg=RIME_CFG), word
+weights from rime-essay's essay.txt (the weights Rime's luna_pinyin dictionaries take), librime-octagram's default
+parameters. essay.txt is Traditional (luna_pinyin_simp converts its output with OpenCC), so its words are turned
+Simplified with OpenCC's TSPhrases.txt / TSCharacters.txt (longest phrase first, else each character's first value);
+a Simplified word several Traditional ones turn into keeps the largest weight.
 """
 import math
 import os
@@ -18,6 +25,7 @@ import struct
 import numpy as np
 
 CFG = dict(max_length=6, min_length=2, collocation=-14.0, non=-6.0, weak=-100.0, rear=-18.0)  # wanxiang.schema.yaml
+RIME_CFG = dict(max_length=4, min_length=3, collocation=-12.0, non=-12.0, weak=-24.0, rear=-18.0)  # octagram.cc defaults
 TABLES = ["zi", "jichu", "cuoyin", "duoyin", "diming", "mingren", "yiren"]
 KS = math.log(1e8)
 UNKNOWN = -20.0
@@ -97,14 +105,51 @@ def unicode_len(enc, length):
     return n
 
 
+class T2S:
+    """OpenCC Traditional -> Simplified: the longest TSPhrases.txt match at each position, else TSCharacters.txt."""
+
+    def __init__(self, folder):
+        def table(name):
+            out = {}
+            for line in open(os.path.join(folder, name), encoding="utf-8"):
+                if line.startswith("#") or "\t" not in line:
+                    continue
+                k, v = line.rstrip("\n").split("\t", 1)
+                out[k] = v.split(" ")[0]
+            return out
+        self.phrases, self.chars = table("TSPhrases.txt"), table("TSCharacters.txt")
+        self.longest = max(map(len, self.phrases))
+
+    def __call__(self, text):
+        out, i = [], 0
+        while i < len(text):
+            for n in range(min(self.longest, len(text) - i), 1, -1):
+                if text[i:i + n] in self.phrases:
+                    out.append(self.phrases[text[i:i + n]])
+                    i += n
+                    break
+            else:
+                out.append(self.chars.get(text[i], text[i]))
+                i += 1
+        return "".join(out)
+
+
 class WanxiangGram:
-    def __init__(self, gram, dict_dir):
+    def __init__(self, gram, dict_dir=None, essay=None, cfg=CFG, opencc=None):
+        self.cfg = cfg
         m = np.memmap(gram, np.uint8, "r")
         assert bytes(m[:14]) == b"Rime::Grammar/"
         size, off = struct.unpack_from("<Ii", m, 36)
         self.trie = Darts(np.frombuffer(m, "<u4", size, 40 + off))
         self.weights = {}
-        for t in TABLES:
+        t2s = T2S(opencc) if opencc else (lambda w: w)
+        for line in open(essay, encoding="utf-8") if essay else []:
+            f = line.rstrip("\n").split("\t")
+            if len(f) >= 2 and f[0]:
+                f[0] = t2s(f[0])
+                w = float(f[1])
+                self.weights[f[0]] = max(self.weights.get(f[0], -math.inf), math.log(w) if w > 0 else math.log(2.220446049250313e-16))
+        for t in TABLES if dict_dir else []:
             body = False
             for line in open(os.path.join(dict_dir, t + ".dict.yaml"), encoding="utf-8"):
                 if not body:
@@ -121,12 +166,12 @@ class WanxiangGram:
         self._q = {}
 
     def query(self, context, word, rear):
-        k = (context[-(CFG["max_length"] - 1):], word, rear)
+        k = (context[-(self.cfg["max_length"] - 1):], word, rear)
         r = self._q.get(k)
         if r is not None:
             return r
-        n = min(8, CFG["max_length"] - 1)
-        result = CFG["non"]
+        n = min(8, self.cfg["max_length"] - 1)
+        result = self.cfg["non"]
         if context:
             ctx = context[-n:]
             wq = encode(word[:n])
@@ -138,14 +183,14 @@ class WanxiangGram:
                 for value, length in self.trie.prefixes(wq, node):
                     mlen = unicode_len(wq, length)
                     whole = s == 0 and length == len(wq)
-                    pen = CFG["collocation"] if (len(ctx) - s) + mlen >= CFG["min_length"] or whole else CFG["weak"]
+                    pen = self.cfg["collocation"] if (len(ctx) - s) + mlen >= self.cfg["min_length"] or whole else self.cfg["weak"]
                     result = max(result, value / VALUE_SCALE + pen)
         if rear and len(word) <= n:
             node = self.trie.traverse(encode(word))
             if node is not None:
                 hit = self.trie.prefixes(b"$", node)
                 if hit:
-                    result = max(result, hit[0][0] / VALUE_SCALE + CFG["rear"])
+                    result = max(result, hit[0][0] / VALUE_SCALE + self.cfg["rear"])
         self._q[k] = result
         if len(self._q) > 3_000_000:
             self._q.clear()

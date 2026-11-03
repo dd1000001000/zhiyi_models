@@ -14,10 +14,17 @@
 
   python cost.py --v3 neutral-v3.jsonl --zhiyi name=<folder> ... --metasequoia <rerank-v1 folder> --youmo <file>
                  --chaoinput <data dir>,<model.py> --qwen <folder> --pinyingpt <folder> --gpt2-zh-21k <folder>
+         --metaseq-v1-4m <file> --metaseq-v1-25m <file> --rime-ai-ime <Qwen3.5-0.8B>,<qwen35-08b-ime-v1-Q8_0.gguf>
+                 --fujik0 <Qwen3.5-0.8B> --lime <Qwen3-0.6B>,367804096 --cnmbert <folder> --qingjian <tongbian>,<zhiwei>
 -> cost.json
+New models' file sizes are what each project runs: Rime-AI-IME its Q8_0 GGUF, FuJiK0 the bf16 Qwen3.5-0.8B (its MLX
+bf16 default), LIME the IQ4_XS GGUF of Qwen3-0.6B (Hugging Face unsloth/Qwen3-0.6B-GGUF), CNMBert the fp32
+safetensors, Qingjian the f16 .qjm. Rime-AI-IME / FuJiK0: the prompt (with the candidate list) once, then each answer;
+CNMBert (initials rows only): one forward per character of each candidate, as its left-to-right fill.
 """
 import argparse
 import json
+import math
 import os
 import sys
 
@@ -55,8 +62,13 @@ def main():
     p = argparse.ArgumentParser()
     p.add_argument("--v3", required=True)
     p.add_argument("--zhiyi", action="append")
-    for k in ("metasequoia", "youmo", "chaoinput", "qwen", "pinyingpt", "gpt2-zh-21k"):
+    for k in ("metasequoia", "youmo", "chaoinput", "qwen", "pinyingpt", "gpt2-zh-21k", "metaseq-v1-4m", "metaseq-v1-25m",
+              "cnmbert"):
         p.add_argument("--" + k)
+    p.add_argument("--rime-ai-ime", help="<Qwen3.5-0.8B folder>,<its released GGUF, for the file size>")
+    p.add_argument("--fujik0", help="<Qwen3.5-0.8B folder>")
+    p.add_argument("--lime", help="<Qwen3-0.6B folder>[,<size in bytes of the IQ4_XS GGUF LIME runs>]")
+    p.add_argument("--qingjian", help="<hanzhang-tongbian-small.qjm>,<hanzhang-zhiwei-small.qjm>")
     a = p.parse_args()
     rows = [r for r in map(json.loads, open(a.v3, encoding="utf-8")) if r["scored"]]
     whole = [[r["candidates"][j] for j in r["whole"]] for r in rows]
@@ -173,6 +185,115 @@ def main():
                 news.append((len(fullc) - k, len(fullc) - k))
             per.append(causal(ctx, news, W, qd, full, V * d))
         add("qwen3.5-2b-base", sum(os.path.getsize(f) for f in files), lm, per)
+
+    for key, name in (("metaseq_v1_4m", "metasequoia-v1-4m"), ("metaseq_v1_25m", "metasequoia-v1-25m")):
+        path = getattr(a, key)
+        if not path:
+            continue
+        from youmo import load_safetensors
+        meta, t = load_safetensors(path)
+        cc = json.loads(meta["config"])
+        d, n, V = cc["n_embd"], cc["n_layer"], cc["vocab"]
+        W = n * 12 * d * d
+        per = []
+        for r, cands in zip(rows, whole):
+            room = max(0, cc["context"] - (max(map(len, cands)) + 1))
+            per.append(causal(1 + min(len(r["context"]), room), [(len(c) - 1, len(c)) for c in cands], W, d, n, V * d))
+        add(name, os.path.getsize(path), sum(v.numel() for k, v in t.items() if not k.endswith(".scale")), per)
+
+    def lm_params(folder):
+        from safetensors import safe_open
+        lm = emb = 0
+        for fn in [os.path.join(folder, x) for x in os.listdir(folder) if x.endswith(".safetensors")]:
+            with safe_open(fn, "pt") as f:
+                for k in f.keys():
+                    if "visual" in k or "mtp" in k or "lm_head" in k:  # lm_head: tied to embed_tokens (Qwen3 stores a copy)
+                        continue
+                    c = math.prod(f.get_slice(k).get_shape())
+                    lm += c
+                    emb += c if "embed_tokens" in k else 0
+        cfg = json.load(open(os.path.join(folder, "config.json"), encoding="utf-8"))
+        return lm, emb, cfg.get("text_config", cfg)
+
+    for key, name, style in (("rime_ai_ime", "rime-ai-ime-0.8b-lora", "rime-ai-ime"), ("fujik0", "fujik0-qwen3.5-0.8b", "fujik0")):
+        spec = getattr(a, key)
+        if not spec:
+            continue
+        base, _, size_file = spec.partition(",")
+        from transformers import AutoTokenizer
+        from chat_judge import PROMPTS, CONTEXT_CHARS
+        tok = AutoTokenizer.from_pretrained(base)
+        lm, emb, tc = lm_params(base)
+        d, V = tc["hidden_size"], tc["vocab_size"]
+        full = sum(1 for k in tc["layer_types"] if k == "full_attention")
+        qd = tc["num_attention_heads"] * tc["head_dim"]
+        p = PROMPTS[style]
+        per = []
+        for r, cands in zip(rows, whole):
+            ctx = r["context"][-CONTEXT_CHARS:]
+            user = (p["with"] if ctx else p["without"]).format(ctx=ctx, py=r["code"], cands="、".join(cands))
+            head = len(tok.apply_chat_template([{"role": "system", "content": p["system"]}, {"role": "user", "content": user}],
+                                               tokenize=True, add_generation_prompt=True, enable_thinking=False))
+            ans = [len(tok(p["answer"].format(w=c), add_special_tokens=False).input_ids) for c in cands]
+            per.append(causal(head, [(k, k) for k in ans], lm - emb, qd, full, V * d))
+        add(name, os.path.getsize(size_file or os.path.join(base, os.listdir(base)[0])), lm, per)
+
+    if a.lime:
+        folder, _, gguf_size = a.lime.partition(",")
+        from transformers import AutoTokenizer
+        from qwen import LIME_PREFIX
+        tok = AutoTokenizer.from_pretrained(folder)
+        lm, emb, tc = lm_params(folder)
+        d, V = tc["hidden_size"], tc["vocab_size"]
+        qd = tc["num_attention_heads"] * tc["head_dim"]
+        per = []
+        for r, cands in zip(rows, whole):
+            base = tok(LIME_PREFIX + r["context"], add_special_tokens=False).input_ids
+            news = []
+            for c in cands:
+                fullc = tok(LIME_PREFIX + r["context"] + c, add_special_tokens=False).input_ids
+                k = next((i for i, (x, y) in enumerate(zip(base, fullc)) if x != y), min(len(base), len(fullc)))
+                news.append((len(fullc) - k, len(fullc) - k))
+            per.append(causal(len(base), news, lm - emb, qd, tc["num_hidden_layers"], V * d))
+        add("lime-qwen3-0.6b", int(gguf_size) if gguf_size else os.path.getsize(os.path.join(folder, "model.safetensors")),
+            lm, per)
+
+    if a.cnmbert:
+        from safetensors import safe_open
+        from transformers import BertTokenizer
+        f = os.path.join(a.cnmbert, "model.safetensors")
+        with safe_open(f, "pt") as st:
+            shapes = {k: st.get_slice(k).get_shape() for k in st.keys()}
+        params = sum(math.prod(s) for s in shapes.values())
+        cfg = json.load(open(os.path.join(a.cnmbert, "config.json"), encoding="utf-8"))
+        d, n, V = cfg["hidden_size"], cfg["num_hidden_layers"], cfg["vocab_size"]
+        W = n * (4 * d * d + 2 * d * cfg["intermediate_size"])
+        tok = BertTokenizer.from_pretrained(a.cnmbert)
+        per = []
+        for r, cands in zip(rows, whole):
+            if r["style"] != "initials":
+                continue
+            m = max(map(len, cands))
+            L = 2 + m + min(len(tok.encode(r["context"], add_special_tokens=False)), 62 - m)
+            per.append(sum(len(c) * (W * L + n * 2 * L * L * d + d * d + V * d) for c in cands))
+        add("cnmbert", os.path.getsize(f), params, per)
+
+    if a.qingjian:
+        tongbian, zhiwei = a.qingjian.split(",")
+        for name, path, p2c in (("qingjian-tongbian", tongbian, True), ("qingjian-zhiwei", zhiwei, False)):
+            raw = open(path, "rb").read()
+            i = raw.index(b'{"tokens"')
+            V = len(json.JSONDecoder().raw_decode(raw[i:].decode("utf-8", "ignore"))[0]["tokens"])
+            d, n, ctxlen = 448, 8, 128
+            W = n * 12 * d * d
+            per = []
+            for r, cands in zip(rows, whole):
+                if p2c:
+                    per.append(causal(1 + len(r["code"]), [(len(c), len(c)) for c in cands], W, d, n, V * d))
+                else:
+                    head = min(1 + len(r["context"]), ctxlen - max(map(len, cands)) - 1)
+                    per.append(causal(head, [(len(c), len(c)) for c in cands], W, d, n, V * d))
+            add(name, len(raw), V * d + ctxlen * d + n * (12 * d * d + 13 * d) + 2 * d, per)
 
     path = os.path.join(HERE, "cost.json")
     old = json.load(open(path, encoding="utf-8")) if os.path.exists(path) else {}

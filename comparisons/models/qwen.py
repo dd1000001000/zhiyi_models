@@ -2,28 +2,38 @@
 - log P(<|endoftext|> + context), each string tokenized whole. The candidate often merges with the context's last
 characters into one token (必要 + 的 -> 必要的), so the candidate tokenized apart is a split the model almost never saw;
 only the tokens after the two tokenizations part are scored, and the context's own tokens from that point subtracted.
+
+Also LIME (xushengfeng/lime, lime-v1): Qwen3-0.6B fed its preamble "下面的内容主题多样" + the text typed so far, no
+start token (its init_ctx); Qwen(path, prefix=LIME_PREFIX, start=None). LIME runs an IQ4_XS GGUF of the same model and
+keeps only tokens whose pinyin matches the keys; here the bf16 weights, and the candidate's plain log P.
 """
 import torch
 
 
+LIME_PREFIX = "下面的内容主题多样"
+
+
 class Qwen:
-    def __init__(self, path, device="cuda"):
+    def __init__(self, path, device="cuda", prefix="", start="<|endoftext|>"):
         from transformers import AutoModelForCausalLM, AutoTokenizer
         self.tok = AutoTokenizer.from_pretrained(path)
         self.model = AutoModelForCausalLM.from_pretrained(path, dtype=torch.bfloat16).to(device).eval()
-        self.start = self.tok.convert_tokens_to_ids("<|endoftext|>")
+        self.head = [self.tok.convert_tokens_to_ids(start)] if start else []
+        self.pad = self.head[0] if self.head else (self.tok.pad_token_id or 0)
+        self.prefix = prefix
         self.device = device
 
     @torch.no_grad()
     def score_rows(self, rows, bs=48):
         """rows: (context, [candidates]) -> a score per candidate."""
-        tok, start, dev = self.tok, self.start, self.device
+        tok, head, dev = self.tok, self.head, self.device
         seqs = []  # (row, cand or -1 for the context, ids, first scored token)
         for n, (ctx, cands) in enumerate(rows):
-            base = [start] + tok(ctx, add_special_tokens=False).input_ids
+            ctx = self.prefix + ctx
+            base = head + tok(ctx, add_special_tokens=False).input_ids
             firsts = []
             for j, c in enumerate(cands):
-                full = [start] + tok(ctx + c, add_special_tokens=False).input_ids
+                full = head + tok(ctx + c, add_special_tokens=False).input_ids
                 d = next((k for k, (a, b) in enumerate(zip(base, full)) if a != b), min(len(base), len(full)))
                 firsts.append(d)
                 seqs.append((n, j, full, d))
@@ -33,7 +43,7 @@ class Qwen:
         for s in range(0, len(order), bs):
             chunk = [seqs[i] for i in order[s:s + bs]]
             T = max(len(x[2]) for x in chunk)
-            ids = torch.tensor([x[2] + [start] * (T - len(x[2])) for x in chunk], device=dev)
+            ids = torch.tensor([x[2] + [self.pad] * (T - len(x[2])) for x in chunk], device=dev)
             att = torch.tensor([[1] * len(x[2]) + [0] * (T - len(x[2])) for x in chunk], device=dev)
             hid = self.model.model(input_ids=ids, attention_mask=att).last_hidden_state
             bi = [b for b, x in enumerate(chunk) for _ in range(x[3], len(x[2]))]

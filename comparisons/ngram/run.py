@@ -4,6 +4,8 @@ scores/<n-gram>_neutral-<set>.jsonl ({"id", "scores"}, null for candidates not c
 
   python run.py --v2 neutral-v2.jsonl --v3 neutral-v3.jsonl --zhiyi zh.ngram --youmo lm.arpa --cyime t9_ngram-v3-ls-tri-c3.lm
                 --wanxiang-gram wanxiang-lts-zh-hans.gram --wanxiang-dict <dicts.zip unpacked>/dicts
+                --libime lm_sc.arpa --opengram lm_sc.3gm.std.arpa (opengram_arpa.py) --libpinyin <model20.text unpacked>
+                --rime-gram zh-hans-t-essay-bgw.gram --rime-essay essay.txt --rime-opencc <OpenCC data/dictionary> --qingjian-lm <qj-score exe>,lm.qj
 Score files already in scores/ are reused; remove one to score it again.
 """
 import argparse
@@ -40,7 +42,39 @@ def scorers(a):
             wg = WanxiangGram(a.wanxiang_gram, a.wanxiang_dict)
             return lambda c, cands: wg.score(c, cands, ctx=ctx)
         return load
-    return {"zhiyi-ng1017": zhiyi, "youmo-lm": youmo, "cyime-t9-v3": cyime, "wanxiang-ctx": wanxiang(True), "wanxiang-noctx": wanxiang(False)}
+    def arpa(path):
+        def load():
+            from ngram_lm import NgramLM
+            return NgramLM(path).score
+        return load
+
+    def libpinyin():
+        from libpinyin_lm import LibpinyinLM
+        return LibpinyinLM(a.libpinyin).score
+
+    def rime():
+        from wanxiang_gram import RIME_CFG, WanxiangGram
+        wg = WanxiangGram(a.rime_gram, essay=a.rime_essay, cfg=RIME_CFG, opencc=a.rime_opencc)
+        return lambda c, cands: wg.score(c, cands, ctx=True)
+
+    def qingjian():
+        import json
+        import subprocess
+        exe, lm = a.qingjian_lm.split(",")
+
+        def score(context, cands):
+            row = json.dumps({"id": 0, "context": context, "code": "", "cands": cands}, ensure_ascii=False) + chr(10)
+            res = subprocess.run([exe, "lm", lm], input=row, capture_output=True, text=True, encoding="utf-8", check=True)
+            return [-1e9 if x is None else x for x in json.loads(res.stdout)["scores"]]
+        return score
+    out = {"zhiyi-ng1017": zhiyi, "youmo-lm": youmo, "cyime-t9-v3": cyime, "wanxiang-ctx": wanxiang(True),
+           "wanxiang-noctx": wanxiang(False)}
+    for name, ok, fn in (("libime-lm-sc", a.libime, arpa(a.libime)), ("opengram-sunpinyin", a.opengram, arpa(a.opengram)),
+                         ("libpinyin-model20", a.libpinyin, libpinyin), ("rime-octagram-hans", a.rime_gram, rime),
+                         ("qingjian-lm", a.qingjian_lm, qingjian)):
+        if ok:
+            out[name] = fn
+    return out
 
 
 def score_file(name, load, v, rows):
@@ -65,7 +99,8 @@ def hits(rows, sc):
 def main():
     sys.stdout.reconfigure(encoding="utf-8")
     p = argparse.ArgumentParser()
-    for k in ("v2", "v3", "zhiyi", "youmo", "cyime", "wanxiang-gram", "wanxiang-dict"):
+    for k in ("v2", "v3", "zhiyi", "youmo", "cyime", "wanxiang-gram", "wanxiang-dict", "libime", "opengram", "libpinyin",
+              "rime-gram", "rime-essay", "rime-opencc", "qingjian-lm"):
         p.add_argument("--" + k)
     a = p.parse_args()
     os.makedirs(os.path.join(HERE, "scores"), exist_ok=True)

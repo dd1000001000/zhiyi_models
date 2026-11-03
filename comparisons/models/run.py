@@ -9,6 +9,9 @@ Every model gets the same rows and the same candidates; the pick is the best-sco
                 --chaoinput <ChaoInput-v3.3.16-win64/data>,<ChaoInput-src-v3.3.16/src/ChaoInput.LmTrain.Gpu/model.py>
                 --qwen <Qwen3.5-2B-Base folder> --pinyingpt <pinyingpt-concat folder> --gpt2-zh-21k <gpt2-zh-21k folder>
                 [--pinyingpt-typed <pinyingpt-concat folder>]  (PinyinGPT fed the pinyin as typed: a side check)
+                --metaseq-v1-4m sentence-model.safetensors --metaseq-v1-25m sentence-model-desktop.safetensors
+                --rime-ai-ime <Qwen3.5-0.8B>,<adapter_v1> --fujik0 <Qwen3.5-0.8B> --lime <Qwen3-0.6B>
+                --cnmbert <CNMBert folder> --qingjian <qj-score exe>,<tongbian .qjm>,<zhiwei .qjm>
 Give only the models to run; score files already in scores/ are reused (remove one to score it again), and every
 score file there is counted in results.json. Zhiyi's graphs run on DirectML (onnxruntime-directml, --cpu for CPU);
 the PyTorch models on CUDA; MetasequoiaIME on CPU.
@@ -91,6 +94,47 @@ def scorers(a):
                 return whole_only(rows, m.score_rows, lambda r: (r["context"], [
                     (r["candidates"][j], r["readings"][j]) for j in r["whole"]]))
             out[name] = pgpt
+    for key, name in (("metaseq_v1_4m", "metasequoia-v1-4m"), ("metaseq_v1_25m", "metasequoia-v1-25m")):
+        path = getattr(a, key)
+        if path:
+            def ms1(rows, path=path):
+                from metaseq_v1 import MetaseqSentence
+                m = MetaseqSentence(path)
+                return whole_only(rows, m.score_rows, lambda r: (r["context"], cands(r)))
+            out[name] = ms1
+    for key, name, style in (("rime_ai_ime", "rime-ai-ime-0.8b-lora", "rime-ai-ime"),
+                             ("fujik0", "fujik0-qwen3.5-0.8b", "fujik0")):
+        spec = getattr(a, key)
+        if spec:
+            def judge(rows, spec=spec, style=style):
+                from chat_judge import ChatJudge
+                base, _, adapter = spec.partition(",")
+                m = ChatJudge(base, style, adapter or None)
+                return whole_only(rows, m.score_rows, lambda r: (r["context"], r["code"], cands(r)))
+            out[name] = judge
+    if a.lime:
+        def lime(rows):
+            from qwen import LIME_PREFIX, Qwen
+            m = Qwen(a.lime, prefix=LIME_PREFIX, start=None)
+            return whole_only(rows, m.score_rows, lambda r: (r["context"], cands(r)))
+        out["lime-qwen3-0.6b"] = lime
+    if a.cnmbert:
+        def cnm(rows):
+            from cnmbert import CNMBert
+            m = CNMBert(a.cnmbert)
+            ini = [r for r in rows if r["style"] == "initials"]
+            got = whole_only(ini, m.score_rows, lambda r: (r["context"], [
+                (r["candidates"][j], "".join(s[0] for s, _ in r["readings"][j])) for j in r["whole"]]))
+            return {r["id"]: got.get(r["id"], [None] * len(r["candidates"])) for r in rows}
+        out["cnmbert"] = cnm
+    if a.qingjian:
+        exe, tongbian, zhiwei = a.qingjian.split(",")
+        for name, mode, model in (("qingjian-tongbian", "p2c", tongbian), ("qingjian-zhiwei", "char", zhiwei)):
+            def qj(rows, mode=mode, model=model):
+                import qingjian
+                return whole_only(rows, lambda items: qingjian.score_rows(exe, mode, model, items),
+                                  lambda r: (r["context"], r["code"], cands(r)))
+            out[name] = qj
     return out
 
 
@@ -112,8 +156,12 @@ def main():
     p.add_argument("--v2")
     p.add_argument("--v3")
     p.add_argument("--zhiyi", action="append", help="name=folder of an unpacked int8 release zip (repeatable)")
-    for k in ("metasequoia", "youmo", "chaoinput", "qwen", "pinyingpt", "pinyingpt-typed", "gpt2-zh-21k"):
+    for k in ("metasequoia", "youmo", "chaoinput", "qwen", "pinyingpt", "pinyingpt-typed", "gpt2-zh-21k",
+              "metaseq-v1-4m", "metaseq-v1-25m", "lime", "cnmbert"):
         p.add_argument("--" + k)
+    p.add_argument("--rime-ai-ime", help="<Qwen3.5-0.8B folder>,<adapter_v1 folder>")
+    p.add_argument("--fujik0", help="<Qwen3.5-0.8B folder>")
+    p.add_argument("--qingjian", help="<qj-score exe>,<hanzhang-tongbian-small.qjm>,<hanzhang-zhiwei-small.qjm>")
     p.add_argument("--cpu", action="store_true", help="Zhiyi's graphs on the CPU instead of DirectML")
     p.add_argument("--context_chars", type=int, help="Zhiyi: the context's last N characters only (named <name>-ctxN)")
     a = p.parse_args()

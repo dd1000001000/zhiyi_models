@@ -9,7 +9,12 @@
 
   python cost.py --v3 neutral-v3.jsonl --zhiyi zh.ngram --youmo lm.arpa --cyime t9_ngram-v3-ls-tri-c3.lm
                  --wanxiang-gram wanxiang-lts-zh-hans.gram --wanxiang-dict <dicts.zip unpacked>/dicts
+                 --libime lm_sc.arpa,sc.lm --opengram lm_sc.3gm.std.arpa,lm_sc.3gm.arpa --libpinyin <model20.text unpacked>
+                 --rime-gram zh-hans-t-essay-bgw.gram --rime-essay essay.txt --rime-opencc <dir> --qingjian-lm <qj-score>,lm.qj
 -> cost.json
+File sizes of the new ones: libime its built sc.lm (kenlm binary, the file fcitx5 installs; chinese-ime-lm's release
+language-model-libime-20260629 carries the same build), open-gram its lm_sc.3gm.arpa text, libpinyin interpolation2.text,
+Rime the grammar plus essay.txt, Qingjian lm.qj.
 """
 import argparse
 import json
@@ -38,7 +43,8 @@ def lookups(rows, score, counter):
 def main():
     sys.stdout.reconfigure(encoding="utf-8")
     p = argparse.ArgumentParser()
-    for k in ("v3", "zhiyi", "youmo", "cyime", "wanxiang-gram", "wanxiang-dict"):
+    for k in ("v3", "zhiyi", "youmo", "cyime", "wanxiang-gram", "wanxiang-dict", "libime", "opengram", "libpinyin",
+              "rime-gram", "rime-essay", "rime-opencc", "qingjian-lm"):
         p.add_argument("--" + k)
     a = p.parse_args()
     rows = [r for r in map(json.loads, open(a.v3, encoding="utf-8")) if r["scored"]]
@@ -98,6 +104,60 @@ def main():
     for name, ctx in (("wanxiang-ctx", True), ("wanxiang-noctx", False)):
         add(name, size, keys + entries, lookups(rows, lambda c, cands: wg.score(c, cands, ctx=ctx),
                                                 lambda: q[0] + CountingDict.n))
+
+    for name, spec in (("libime-lm-sc", a.libime), ("opengram-sunpinyin", a.opengram)):
+        if not spec:
+            continue
+        arpa, _, shipped = spec.partition(",")  # shipped: the file the project installs, when not the ARPA itself
+        lm = NgramLM(arpa)
+        calls = [0]
+        lp3 = lm.lp3
+
+        def counted(u, v, w, lp3=lp3, calls=calls):
+            calls[0] += 1
+            return lp3(u, v, w)
+        lm.lp3 = counted
+        add(name, os.path.getsize(shipped or arpa), len(lm.words) + len(lm.k2) + len(lm.k3),
+            lookups(rows, lm.score, lambda calls=calls: calls[0]))
+
+    if a.libpinyin:
+        from libpinyin_lm import LibpinyinLM
+        lp = LibpinyinLM(a.libpinyin)
+        calls = [0]
+        f = lp.lp
+
+        def counted_lp(v, w):
+            calls[0] += 1
+            return f(v, w)
+        lp.lp = counted_lp
+        add("libpinyin-model20", os.path.getsize(os.path.join(a.libpinyin, "interpolation2.text")),
+            len(lp.u) + len(lp.bi), lookups(rows, lp.score, lambda: calls[0]))
+
+    if a.rime_gram:
+        from wanxiang_gram import RIME_CFG
+        rg = WanxiangGram(a.rime_gram, essay=a.rime_essay, cfg=RIME_CFG, opencc=a.rime_opencc)
+        keys = int(((rg.trie.a >> 31) & 1).sum())
+        CountingDict.n = 0
+        rg.weights = CountingDict(rg.weights)
+        q = [0]
+        query = rg.query
+
+        def counted_rq(context, word, rear):
+            q[0] += 1
+            return query(context, word, rear)
+        rg.query = counted_rq
+        add("rime-octagram-hans", os.path.getsize(a.rime_gram) + os.path.getsize(a.rime_essay), keys + len(rg.weights),
+            lookups(rows, lambda c, cands: rg.score(c, cands, ctx=True), lambda: q[0] + CountingDict.n))
+
+    if a.qingjian_lm:
+        import subprocess
+        exe, lmqj = a.qingjian_lm.split(",")
+        text = "".join(json.dumps({"id": i, "context": r["context"], "code": "", "cands": [r["candidates"][j] for j in r["whole"]]},
+                                  ensure_ascii=False) + chr(10) for i, r in enumerate(rows))
+        res = subprocess.run([exe, "lm", lmqj], input=text, capture_output=True, text=True, encoding="utf-8", check=True)
+        info = dict(line.split(" ", 1) for line in res.stderr.strip().splitlines() if " " in line)
+        words, bigrams = map(int, info["entries"].split())
+        add("qingjian-lm", os.path.getsize(lmqj), words + bigrams, int(info["lookups"]) / len(rows))
 
     path = os.path.join(HERE, "cost.json")
     old = json.load(open(path, encoding="utf-8")) if os.path.exists(path) else {}

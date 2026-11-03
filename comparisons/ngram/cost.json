@@ -23,5 +23,30 @@
   "file_mb": 472.726421,
   "entries": 7939843,
   "lookups_per_row": 57.081440123219096
+ },
+ "libime-lm-sc": {
+  "file_mb": 34.736327,
+  "entries": 7250101,
+  "lookups_per_row": 78.18733153638814
+ },
+ "opengram-sunpinyin": {
+  "file_mb": 181.217858,
+  "entries": 3571759,
+  "lookups_per_row": 69.17510589141317
+ },
+ "libpinyin-model20": {
+  "file_mb": 83.457181,
+  "entries": 1987705,
+  "lookups_per_row": 137.52656911821333
+ },
+ "rime-octagram-hans": {
+  "file_mb": 46.812547,
+  "entries": 1428653,
+  "lookups_per_row": 56.86022333461687
+ },
+ "qingjian-lm": {
+  "file_mb": 44.806288,
+  "entries": 5053608,
+  "lookups_per_row": 134.06574894108587
  }
 }

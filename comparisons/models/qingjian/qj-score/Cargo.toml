@@ -1,0 +1,12 @@
+[package]
+name = "qj-score"
+description = "Score given candidates with Qingjian's own models (comparison harness, not part of Qingjian)"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+qingjian-core.workspace = true
+qingjian-lm.workspace = true
+qingjian-neural.workspace = true
+serde_json.workspace = true
