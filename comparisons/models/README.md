@@ -16,8 +16,8 @@
 |---|---|---|---|---|---|
 | 知意 ML-pumpkin-1026 | Release `model-ml-pumpkin-1026` 的 `laya-ml-pumpkin-1026-int8g.zip` 里的 `laya.int8g.onnx`，12 层 | 92 MB | `bbf51918…7a06` | 本仓库 | Apache-2.0 |
 | 知意 ML-Flash-1031 | Release `model-ml-flash-1031` 的 `laya-ml-flash-1031-int8g.zip` 里的 `laya.int8g.onnx`，8 层 | 75 MB | `4cd47566…92ca` | 本仓库 | Apache-2.0 |
-| 知意 pumpkin-1103 | 内部版本，12 层，同结构续训后导出的 int8 ONNX；**未发布，权重不公开** | 83 MB | `5ca51a94…eb08` | — | — |
-| 知意 Flash-1103 | 内部版本，8 层，同上；**未发布，权重不公开** | 75 MB | `6396bffe…d7b7` | — | — |
+| 知意 ML-pumpkin-1103 | Release [`model-ml-pumpkin-1103`](https://github.com/dd1000001000/zhiyi_models/releases/tag/model-ml-pumpkin-1103) 的 `laya-ml-pumpkin-1103-int8g.zip` 里的 `laya.int8g.onnx`，12 层（测试时尚未发布，后于 2026-11-03 发布） | 83 MB | `5ca51a94…eb08` | 本仓库 | Apache-2.0 |
+| 知意 ML-Flash-1103 | Release [`model-ml-flash-1103`](https://github.com/dd1000001000/zhiyi_models/releases/tag/model-ml-flash-1103) 的 `laya-ml-flash-1103-int8g.zip` 里的 `laya.int8g.onnx`，8 层（同上） | 75 MB | `6396bffe…d7b7` | 本仓库 | Apache-2.0 |
 | PinyinGPT-Concat | Hugging Face `aihijo/transformers4ime-pinyingpt-concat` 的 `pytorch_model.bin`：GPT-2 12 层 × 768，词表 21,128 + 443 个拼音 token | 489 MB | `1c5ebb9e…74bb` | Tan 等，ACL 2022（腾讯 AI Lab）；代码 [VisualJoyce/Transformers4IME](https://github.com/VisualJoyce/Transformers4IME) `8f1573e` | CC BY-NC-SA 4.0 |
 | GPT2-zh-21k | Hugging Face `aihijo/gpt2-zh-21k` 的 `model.safetensors`：同一论文里冻结使用的中文 GPT | 421 MB | `645284b6…78c6` | 同上 | CC BY-NC-SA 4.0 |
 | Rime-AI-IME 重排模型 | [oc160/Rime-AI-IME](https://github.com/oc160/Rime-AI-IME)（`aa87a4a`）Release `v0.1.0-model`：Qwen3.5-0.8B 的 LoRA `adapter_v1.zip`（与 `qwen35-08b-ime-v1-Q8_0.gguf` 同一份权重），底座 Hugging Face `Qwen/Qwen3.5-0.8B`（`2fc0636`） | 812 MB（GGUF） | GGUF `da81b612…49dd`，adapter `412f58aa…c0dc`，底座 `04b1c301…4696` | 同左 | 代码 MIT；底座 Apache-2.0 |
@@ -77,8 +77,8 @@
 | | v2 全部 | v3 全部 | v3 全拼 | v3 首字母 | v3 部分 / 混拼 | v3 短词 | v3 两词 | v3 长句 |
 |---|---|---|---|---|---|---|---|---|
 | 行数 | 5,211 | 10,388 | 7,423 | 709 | 2,256 | 7,735 | 913 | 1,740 |
-| 知意 pumpkin-1103（内部，未发布） | 93.5 | 93.8 | 95.3 | 83.9 | 92.2 | 93.5 | 95.1 | 94.7 |
-| 知意 Flash-1103（内部，未发布） | 93.3 | 93.3 | 95.0 | 82.4 | 91.2 | 92.9 | 93.5 | 94.9 |
+| 知意 ML-pumpkin-1103 | 93.5 | 93.8 | 95.3 | 83.9 | 92.2 | 93.5 | 95.1 | 94.7 |
+| 知意 ML-Flash-1103 | 93.3 | 93.3 | 95.0 | 82.4 | 91.2 | 92.9 | 93.5 | 94.9 |
 | 知意 ML-pumpkin-1026 | 93.1 | 93.1 | 94.8 | 82.5 | 90.7 | 92.7 | 94.2 | 94.1 |
 | 知意 ML-Flash-1031 | 93.2 | 93.1 | 94.8 | 82.5 | 91.1 | 92.8 | 93.3 | 94.6 |
 | PinyinGPT-Concat（腾讯） | 94.1 | 94.1 | 95.2 | 87.7 | 92.5 | 93.6 | 95.6 | 95.4 |
@@ -108,8 +108,8 @@
 
 | 模型 | 文件大小 | 总参数量 | 理论计算量（v3 每行乘加） |
 |---|---|---|---|
-| 知意 pumpkin-1103（内部，未发布） | 83 MB（1.10） | 80.8M（1.10） | 3.6 G（1.40） |
-| 知意 Flash-1103（内部，未发布） | 75 MB（1.00） | 73.2M（1.00） | 2.6 G（1.00） |
+| 知意 ML-pumpkin-1103 | 83 MB（1.10） | 80.8M（1.10） | 3.6 G（1.40） |
+| 知意 ML-Flash-1103 | 75 MB（1.00） | 73.2M（1.00） | 2.6 G（1.00） |
 | 知意 ML-pumpkin-1026 | 92 MB（1.22） | 84.4M（1.15） | 3.6 G（1.40） |
 | 知意 ML-Flash-1031 | 75 MB（1.00） | 73.2M（1.00） | 2.6 G（1.00） |
 | PinyinGPT-Concat（腾讯） | 489 MB（6.48） | 102.4M（1.40） | 10.9 G（4.21） |
