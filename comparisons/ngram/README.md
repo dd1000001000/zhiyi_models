@@ -3,6 +3,8 @@
 四个输入法的词语 n-gram 在[中立选词测试集 v2](../../benchmarks/neutral-v2/) 和 [v3](../../benchmarks/neutral-v3/) 上的首选准确率，只用 n-gram，不用任何神经模型。全部在 CPU 上单进程跑，每个 n-gram 跑一套题只要几秒。测试日期：2026-11-03。
 
 > **说明**：测试结果仅供参考。各家的 n-gram 都是按其公开的文件格式自己实现读取和打分，没有运行各家的程序，难免与原作者的实际用法有出入；测试集、打分方式和题目来源的偏差见下文。如果发现任何问题（读取或打分有误、版本不对、对哪一家不公平等），请到 [Issues](https://github.com/dd1000001000/zhiyi_models/issues) 提出，我们会核对并更正。
+>
+> **欢迎加入对比**：如果你希望把自己的 n-gram 加入这个对比，请在 [Issues](https://github.com/dd1000001000/zhiyi_models/issues) 里提出并附上 n-gram 的下载地址和用法说明，我们会联系你，按同样的题目和规则测试。
 
 ![n-gram 对比](media/ngram_compare.zh-CN.svg)
 
