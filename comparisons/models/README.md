@@ -1,4 +1,4 @@
-# 选词 / 组句模型对比：知意、PinyinGPT、Rime 插件、LIME、水杉、青简、幽默、吵吵
+# 选词 / 组句模型对比：知意、PinyinGPT、Rime 插件、LIME、水杉、青简、幽默、知字、吵吵
 
 各输入法的神经排序模型在[中立选词测试集 v2](../../benchmarks/neutral-v2/) 和 [v3](../../benchmarks/neutral-v3/) 上的首选准确率，只用模型，不用任何引擎和 n-gram；另附一项整句组句测试。Qwen3.5-2B-Base 作为通用语言模型的参考。测试日期：2026-11-03。
 
@@ -30,6 +30,7 @@
 | 青简 含章·通变 | [qingjian-team/qingjian](https://github.com/qingjian-team/qingjian) Release `data-v9`（2026-10-30）的 `hanzhang-tongbian-small.qjm`：字级 GPT，8 层 × 448，按拼音出字（P2C） | 46 MB | `4eabcb14…f973`（包 `bc8dd7f4…694b`） | 同左；代码 `97dde30` | GPL-3.0-or-later |
 | 青简 含章·知微 | 同一仓库 Release `data-v7`（2026-10-13）的 `hanzhang-zhiwei-small.qjm`：字级 GPT，8 层 × 448，按上文给候选打分；0.3.2 起已下线 | 56 MB | `83ad55ab…b0ef`（包 `e259f8bc…9e40`） | 同左 | GPL-3.0-or-later |
 | 幽默输入法 句子模型 25M | [Sraw/youmo-ime](https://github.com/Sraw/youmo-ime) Release `sentence-models-20261001` 的 `sentence-model-large.safetensors` | 25 MB | `6f7fcb72…669a` | 同左 | Apache-2.0 |
+| 知字输入法 顺手·知字 30M | Hugging Face [`DabbleCove/shunshou-zhizi-30m`](https://huggingface.co/DabbleCove/shunshou-zhizi-30m)（`b74f570`）的 `zhizi30m_v2.onnx` 和 `itos.json`：字级 GPT，8 层 × 512，字表 7,745；输入法 [lihytaihe-lang/zhizi](https://github.com/lihytaihe-lang/zhizi) 0.1.5 | 133 MB | `07c8a48d…358b` | 同左 | 权重 CC BY-SA 4.0；输入法代码 Apache-2.0 |
 | 吵吵拼音 CLMG v2 | [yangchaoliuyang/chaoinput](https://github.com/yangchaoliuyang/chaoinput) Release `v3.3.16`：`ChaoInput-v3.3.16-win64.zip` 里的 `data/lmt.bin` 和 `data/dict.db`，结构按源码包的 `ChaoInput.LmTrain.Gpu/model.py` | 115 MB（`lmt.bin`） | `f9052324…f8b8`（`dict.db` `51fd6c85…fd1b`） | 同左 | MIT |
 | CNMBert | Hugging Face `Midsummra/CNMBert`（`7802eae`）的 `model.safetensors`：BERT 1.31 亿参数，把拼音首字母还原成汉字；代码 [IgarashiAkatuki/zh-CN-Multi-Mask-Bert](https://github.com/IgarashiAkatuki/zh-CN-Multi-Mask-Bert) | 523 MB | `89761d19…4ab2` | Feng 等，IJCNN 2025 | AGPL-3.0 |
 | Qwen3.5-2B-Base（参考） | Hugging Face `Qwen/Qwen3.5-2B-Base` | 4.55 GB | `928acbf1…df2d` | 通义千问 | Apache-2.0 |
@@ -54,6 +55,7 @@
 | 青简 含章·通变 | 不看上文 | 所打的按键（它的 P2C：`<eos> 按键 <sep> 汉字`） | 每个候选逐字强制喂入 | 各字 log P 之和；用青简自己的 `CharScorer::score_p2c` |
 | 青简 含章·知微 | `<eos>` 加上文（按模型的 128 上下文从左边截） | 不看按键 | 候选逐字接在上文后 | 各字 log P 之和；用青简自己的 `CharScorer::score` |
 | 幽默 | 只给上文最后一行（去掉 `[URL]` 和换行，它的词表里没有） | 不给 | 候选逐字接在上文后 | 各字 log P 之和 |
+| 知字 | `<bos>` 加上文最后一行的末尾，最多 32 字，并给最长的候选留出位置（模型输入固定 40 位）；同其 `ContextRankingScorer`，字表外的字记 `<unk>` | 不给 | 每 8 个候选一批，逐字接在上文后 | 各字 log P 之和 |
 | 吵吵 | 最后 64 字 | 只用来查它词典里这个候选的词频 | 每个候选单独算 | log(10 + 词频) + 上文向量 · 候选字向量的平均 |
 | CNMBert | `[CLS]` 加上文（共 64 个 token 以内） | 每个首字母一个专用遮罩 token（同其 `predict`） | 遮罩从左到右逐个填入候选的字，每步在整个词表上算 | 各步 log P 之和；**只测只打首字母的行** |
 | Qwen3.5-2B（参考） | `<\|endoftext\|>` 加上文 | 不给 | 上文加候选整串一起分词 | log P(上文 + 候选) − log P(上文) |
@@ -69,6 +71,7 @@
 - **计算量不同**：PinyinGPT、GPT2 对每个候选单独跑一遍（上文可共用缓存），每个字算一次整个词表的 softmax；两个 Rime 插件和 LIME 用 6–8 亿参数的通用模型；知意一次前向给整页候选打分。各家的倍数见下面的表。
 - PinyinGPT 的拼音表里没有某个字的这个读音时，把这个字加进该位置允许的字里，不让它直接得零分；它拼不出的候选（拉丁字母、词表外的字）记 −1e4，这些候选在两套题里都不是答案。
 - 水杉、幽默在各自的输入法里还要加上解码器 / n-gram 的分数，这里只比模型本身，不能代表它们输入法的整体表现。
+- **知字**：它在输入法里默认关闭（实验开关），打开后只在同读音、同长度的一组候选里重排，取「模型分 − 2 × 词库原排名」最高的；这里只比模型本身。它的输入法只记同一个程序里最近上屏的 32 个字作为上文，这里给的是测试集的上文（最后一行，最多 32 字）。
 - PinyinGPT、GPT2-zh-21k 为 CC BY-NC-SA 4.0，CNMBert 为 AGPL-3.0，这里只做评测，不分发它们的权重。
 - v3 是 2026 年 10 月的网页，晚于各家的训练数据；知意 1103 两个模型训练时没有用到 v2、v3、v1 的任何内容。
 
@@ -93,6 +96,7 @@
 | 青简 含章·知微 | 88.6 | 89.4 | 91.8 | 76.0 | 85.9 | 88.6 | 91.3 | 92.0 |
 | 青简 含章·通变 | 69.6 | 71.7 | 80.0 | 29.3 | 57.6 | 68.1 | 78.5 | 84.1 |
 | 幽默输入法 句子模型 25M | 86.8 | 86.8 | 89.5 | 70.1 | 83.2 | 85.8 | 89.6 | 89.7 |
+| 知字输入法 顺手·知字 30M | 84.9 | 86.2 | 89.0 | 70.2 | 82.1 | 85.3 | 89.7 | 88.6 |
 | 吵吵拼音 CLMG v2 | 67.2 | 73.1 | 82.1 | 50.9 | 50.7 | 77.2 | 66.3 | 58.8 |
 | CNMBert（只测首字母行） | — | — | — | 60.5 | — | — | — | — |
 | Qwen3.5-2B-Base（参考：通用语言模型） | **97.8** | **97.7** | **98.0** | **95.6** | **97.3** | **97.3** | **98.7** | **98.7** |
@@ -124,12 +128,13 @@
 | 青简 含章·知微 | 56 MB（0.74） | 28.0M（0.38） | 2.8 G（1.09） |
 | 青简 含章·通变 | 46 MB（0.61） | 23.0M（0.31） | 518 M（0.20） |
 | 幽默输入法 句子模型 25M | 25 MB（0.34） | 24.7M（0.34） | 985 M（0.38） |
+| 知字输入法 顺手·知字 30M | 133 MB（1.76） | 29.3M（0.40） | 853 M（0.33） |
 | 吵吵拼音 CLMG v2 | 115 MB（1.52） | 28.7M（0.39） | 1.2 G（0.47） |
 | CNMBert（只测首字母行） | 523 MB（6.93） | 130.6M（1.79） | 172.6 G（67.03） |
 | Qwen3.5-2B-Base（参考：通用语言模型） | 4.55 GB（60.32） | 1.88B（25.72） | 124.0 G（48.15） |
 
-- 文件大小：各家实际用的模型文件。知意为 int8 ONNX，水杉 rerank-v1 为 `.ort`，水杉 model-v1 和幽默为 int8 safetensors，青简为 f16 的 `.qjm`，吵吵为 fp32 的 `lmt.bin`（不含词典 `dict.db`），PinyinGPT / GPT2 / CNMBert 为 fp32 权重，Rime-AI-IME 为它发布的 Q8_0 GGUF，rime-llm-reranker 为 bf16（它默认的 MLX bf16），LIME 为它跑的 IQ4_XS GGUF，Qwen 2B 为 bf16 且含视觉部分。
-- 总参数量：文件里的张量个数。知意按 ONNX 的权重数，其中约 4,875 万是词嵌入；水杉 rerank-v1 的 `.ort` 无法直接读出张量，按其 `model.json` 的结构算；Qwen 系列只算语言模型部分，绑定的输出层不重复计。
+- 文件大小：各家实际用的模型文件。知意为 int8 ONNX，水杉 rerank-v1 为 `.ort`，水杉 model-v1 和幽默为 int8 safetensors，青简为 f16 的 `.qjm`，知字为 fp32 ONNX（Windows 版用它，macOS 用 Core ML fp16），吵吵为 fp32 的 `lmt.bin`（不含词典 `dict.db`），PinyinGPT / GPT2 / CNMBert 为 fp32 权重，Rime-AI-IME 为它发布的 Q8_0 GGUF，rime-llm-reranker 为 bf16（它默认的 MLX bf16），LIME 为它跑的 IQ4_XS GGUF，Qwen 2B 为 bf16 且含视觉部分。
+- 总参数量：文件里的张量个数。知意按 ONNX 的权重数，其中约 4,875 万是词嵌入；水杉 rerank-v1 的 `.ort` 无法直接读出张量，按其 `model.json` 的结构算；Qwen 系列只算语言模型部分，绑定的输出层不重复计；知字的 ONNX 里绑定的输出层多存了一份，同样只计一次。
 - 理论计算量：从头给一行的整串候选打分的乘加次数，按 v3 计分行平均（`cost.py`）。上文只算一次（因果模型的上文 K/V 各候选共用），各词元过线性层，注意力按各词元看到的长度算，逐字算整个词表 softmax 的模型另加输出层（水杉 6x256 是自归一化的，只算候选字那一项）。两个 Rime 插件为提示词（含候选列表）算一次、再加各候选的回答；CNMBert 每个候选每个字一次完整前向（只算首字母行）。知意为整页一次前向（编码器 + 选词头，不算组句头）；在输入法里知意 Flash 的上文可以缓存，这里没有扣除。
 
 ## 结果：组句（P@1 / P@5 %）
@@ -164,11 +169,11 @@ python run.py --v2 neutral-v2.jsonl --v3 neutral-v3.jsonl --youmo sentence-model
 ```
 
 ```bash
-python run.py --v2 neutral-v2.jsonl --v3 neutral-v3.jsonl --metaseq-v1-4m sentence-model.safetensors --metaseq-v1-25m sentence-model-desktop.safetensors --rime-ai-ime Qwen3.5-0.8B,adapter_v1 --fujik0 Qwen3.5-0.8B --lime Qwen3-0.6B --cnmbert CNMBert --qingjian qj-score.exe,hanzhang-tongbian-small.qjm,hanzhang-zhiwei-small.qjm
+python run.py --v2 neutral-v2.jsonl --v3 neutral-v3.jsonl --metaseq-v1-4m sentence-model.safetensors --metaseq-v1-25m sentence-model-desktop.safetensors --rime-ai-ime Qwen3.5-0.8B,adapter_v1 --fujik0 Qwen3.5-0.8B --lime Qwen3-0.6B --cnmbert CNMBert --qingjian qj-score.exe,hanzhang-tongbian-small.qjm,hanzhang-zhiwei-small.qjm --zhizi shunshou-zhizi-30m
 ```
 
 ```bash
-python cost.py --v3 neutral-v3.jsonl --zhiyi zhiyi-flash-1031=laya-ml-flash-1031-int8g --metasequoia rerank-v1 --youmo sentence-model-large.safetensors --chaoinput ChaoInput-v3.3.16-win64/data,ChaoInput-src-v3.3.16/src/ChaoInput.LmTrain.Gpu/model.py --qwen Qwen3.5-2B-Base --pinyingpt transformers4ime-pinyingpt-concat --gpt2-zh-21k gpt2-zh-21k --metaseq-v1-4m sentence-model.safetensors --metaseq-v1-25m sentence-model-desktop.safetensors --rime-ai-ime Qwen3.5-0.8B,qwen35-08b-ime-v1-Q8_0.gguf --fujik0 Qwen3.5-0.8B,Qwen3.5-0.8B/model.safetensors-00001-of-00001.safetensors --lime Qwen3-0.6B,367804096 --cnmbert CNMBert --qingjian hanzhang-tongbian-small.qjm,hanzhang-zhiwei-small.qjm
+python cost.py --v3 neutral-v3.jsonl --zhiyi zhiyi-flash-1031=laya-ml-flash-1031-int8g --metasequoia rerank-v1 --youmo sentence-model-large.safetensors --chaoinput ChaoInput-v3.3.16-win64/data,ChaoInput-src-v3.3.16/src/ChaoInput.LmTrain.Gpu/model.py --qwen Qwen3.5-2B-Base --pinyingpt transformers4ime-pinyingpt-concat --gpt2-zh-21k gpt2-zh-21k --metaseq-v1-4m sentence-model.safetensors --metaseq-v1-25m sentence-model-desktop.safetensors --rime-ai-ime Qwen3.5-0.8B,qwen35-08b-ime-v1-Q8_0.gguf --fujik0 Qwen3.5-0.8B,Qwen3.5-0.8B/model.safetensors-00001-of-00001.safetensors --lime Qwen3-0.6B,367804096 --cnmbert CNMBert --qingjian hanzhang-tongbian-small.qjm,hanzhang-zhiwei-small.qjm --zhizi shunshou-zhizi-30m
 ```
 
 ```bash
@@ -194,6 +199,7 @@ python chart.py --v2 neutral-v2.jsonl --v3 neutral-v3.jsonl
 | `qingjian.py`、`qingjian/` | 青简：调用 `qj-score`（在青简源码里编译的 Rust 小工具，直接用青简的 `CharScorer` 和 `BigramModel`） |
 | `cnmbert.py` | CNMBert 的首字母遮罩逐字填充打分 |
 | `youmo.py` | 幽默句子模型（chinese-ime-lm 格式）的 PyTorch 实现和打分 |
+| `zhizi30m.py` | 知字 30M：用 onnxruntime（CPU）跑它的 ONNX，按它的输入格式打分 |
 | `chaoinput.py` | 吵吵 CLMG v2（`lmt.bin`）和词典先验 |
 | `scores/` | 每个模型在每套题上的分数，`{"id", "scores"}`，不比的候选为 null；含 `-ctx100` 和 `pinyingpt-concat-typed` 两种附加测试 |
 | `results.json` | 各组的行数和准确率；`compose` 为组句的 P@1 / P@5 |

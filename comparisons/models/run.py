@@ -12,9 +12,10 @@ Every model gets the same rows and the same candidates; the pick is the best-sco
                 --metaseq-v1-4m sentence-model.safetensors --metaseq-v1-25m sentence-model-desktop.safetensors
                 --rime-ai-ime <Qwen3.5-0.8B>,<adapter_v1> --fujik0 <Qwen3.5-0.8B> --lime <Qwen3-0.6B>
                 --cnmbert <CNMBert folder> --qingjian <qj-score exe>,<tongbian .qjm>,<zhiwei .qjm>
+                --zhizi <shunshou-zhizi-30m folder>
 Give only the models to run; score files already in scores/ are reused (remove one to score it again), and every
 score file there is counted in results.json. Zhiyi's graphs run on DirectML (onnxruntime-directml, --cpu for CPU);
-the PyTorch models on CUDA; MetasequoiaIME on CPU.
+the PyTorch models on CUDA; MetasequoiaIME and Zhizi on CPU.
 """
 import argparse
 import json
@@ -70,6 +71,12 @@ def scorers(a):
             m = Youmo(a.youmo)
             return whole_only(rows, m.score_rows, lambda r: (r["context"], cands(r)))
         out["youmo-25m"] = youmo
+    if a.zhizi:
+        def zhizi(rows):
+            from zhizi30m import Zhizi
+            m = Zhizi(a.zhizi)
+            return whole_only(rows, m.score_rows, lambda r: (r["context"], cands(r)))
+        out["zhizi-30m"] = zhizi
     if a.chaoinput:
         def chao(rows):
             from chaoinput import Chao
@@ -157,7 +164,7 @@ def main():
     p.add_argument("--v3")
     p.add_argument("--zhiyi", action="append", help="name=folder of an unpacked int8 release zip (repeatable)")
     for k in ("metasequoia", "youmo", "chaoinput", "qwen", "pinyingpt", "pinyingpt-typed", "gpt2-zh-21k",
-              "metaseq-v1-4m", "metaseq-v1-25m", "lime", "cnmbert"):
+              "metaseq-v1-4m", "metaseq-v1-25m", "lime", "cnmbert", "zhizi"):
         p.add_argument("--" + k)
     p.add_argument("--rime-ai-ime", help="<Qwen3.5-0.8B folder>,<adapter_v1 folder>")
     p.add_argument("--fujik0", help="<Qwen3.5-0.8B folder>")

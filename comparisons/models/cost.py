@@ -16,10 +16,11 @@
                  --chaoinput <data dir>,<model.py> --qwen <folder> --pinyingpt <folder> --gpt2-zh-21k <folder>
          --metaseq-v1-4m <file> --metaseq-v1-25m <file> --rime-ai-ime <Qwen3.5-0.8B>,<qwen35-08b-ime-v1-Q8_0.gguf>
                  --fujik0 <Qwen3.5-0.8B> --lime <Qwen3-0.6B>,367804096 --cnmbert <folder> --qingjian <tongbian>,<zhiwei>
+                 --zhizi <shunshou-zhizi-30m folder>
 -> cost.json
 New models' file sizes are what each project runs: Rime-AI-IME its Q8_0 GGUF, FuJiK0 the bf16 Qwen3.5-0.8B (its MLX
 bf16 default), LIME the IQ4_XS GGUF of Qwen3-0.6B (Hugging Face unsloth/Qwen3-0.6B-GGUF), CNMBert the fp32
-safetensors, Qingjian the f16 .qjm. Rime-AI-IME / FuJiK0: the prompt (with the candidate list) once, then each answer;
+safetensors, Qingjian the f16 .qjm, Zhizi its fp32 ONNX (Windows; macOS runs a Core ML fp16 copy). Rime-AI-IME / FuJiK0: the prompt (with the candidate list) once, then each answer;
 CNMBert (initials rows only): one forward per character of each candidate, as its left-to-right fill.
 """
 import argparse
@@ -63,7 +64,7 @@ def main():
     p.add_argument("--v3", required=True)
     p.add_argument("--zhiyi", action="append")
     for k in ("metasequoia", "youmo", "chaoinput", "qwen", "pinyingpt", "gpt2-zh-21k", "metaseq-v1-4m", "metaseq-v1-25m",
-              "cnmbert"):
+              "cnmbert", "zhizi"):
         p.add_argument("--" + k)
     p.add_argument("--rime-ai-ime", help="<Qwen3.5-0.8B folder>,<its released GGUF, for the file size>")
     p.add_argument("--fujik0", help="<Qwen3.5-0.8B folder>")
@@ -122,6 +123,17 @@ def main():
         per = [causal(1 + min(len(clean(r["context"])), cc["context"] - 1 - ROOM), [(len(c) - 1, len(c)) for c in cands],
                       W, d, n, V * d) for r, cands in zip(rows, whole)]
         add("youmo-25m", os.path.getsize(a.youmo), sum(v.numel() for k, v in t.items() if not k.endswith(".scale")), per)
+
+    if a.zhizi:
+        from zhizi30m import KEEP, clean
+        d, n, V, P = 512, 8, 7745, 128  # its ONNX keeps a second copy of the tied output matrix: counted once
+        W = n * 12 * d * d
+        per = []
+        for r, cands in zip(rows, whole):
+            ctx = 1 + min(len(clean(r["context"])), KEEP, 39 - max(map(len, cands)))
+            per.append(causal(ctx, [(len(c) - 1, len(c)) for c in cands], W, d, n, V * d))
+        add("zhizi-30m", os.path.getsize(os.path.join(a.zhizi, "zhizi30m_v2.onnx")),
+            V * d + P * d + n * (12 * d * d + 13 * d) + 2 * d, per)
 
     if a.chaoinput:
         import chaoinput as C
