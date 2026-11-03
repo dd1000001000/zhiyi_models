@@ -1,0 +1,57 @@
+{
+ "zhiyi-pumpkin-1026": {
+  "file_mb": 92.229221,
+  "params": 84383723,
+  "macs_per_row": 3617322747.0219483
+ },
+ "zhiyi-flash-1031": {
+  "file_mb": 75.402521,
+  "params": 73163627,
+  "macs_per_row": 2574900049.8667693
+ },
+ "zhiyi-pumpkin-1103": {
+  "file_mb": 83.231814,
+  "params": 80834411,
+  "macs_per_row": 3617322747.0219483
+ },
+ "zhiyi-flash-1103": {
+  "file_mb": 75.402521,
+  "params": 73163627,
+  "macs_per_row": 2574900049.8667693
+ },
+ "metasequoia-rerank-8x448": {
+  "file_mb": 30.834688,
+  "params": 24933888,
+  "macs_per_row": 1432899717.1752021
+ },
+ "metasequoia-rerank-6x256": {
+  "file_mb": 8.220064,
+  "params": 7949824,
+  "macs_per_row": 333355441.2629958
+ },
+ "youmo-25m": {
+  "file_mb": 25.292364,
+  "params": 24683456,
+  "macs_per_row": 984663881.0997305
+ },
+ "chaoinput": {
+  "file_mb": 114.921544,
+  "params": 28689408,
+  "macs_per_row": 1216200818.3966115
+ },
+ "pinyingpt-concat": {
+  "file_mb": 488.536999,
+  "params": 102408960,
+  "macs_per_row": 10851720697.321526
+ },
+ "gpt2-zh-21k": {
+  "file_mb": 420.87531,
+  "params": 102068736,
+  "macs_per_row": 8807333278.410473
+ },
+ "qwen3.5-2b-base": {
+  "file_mb": 4548.221488,
+  "params": 1881825088,
+  "macs_per_row": 123989678286.98344
+ }
+}

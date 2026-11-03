@@ -1,0 +1,27 @@
+{
+ "zhiyi-ng1017": {
+  "file_mb": 79.046752,
+  "entries": 8349150,
+  "lookups_per_row": 80.58134385829804
+ },
+ "youmo-lm": {
+  "file_mb": 1128.083024,
+  "entries": 39622199,
+  "lookups_per_row": 80.58134385829804
+ },
+ "cyime-t9-v3": {
+  "file_mb": 212.706156,
+  "entries": 29198113,
+  "lookups_per_row": 66.05159799768964
+ },
+ "wanxiang-ctx": {
+  "file_mb": 472.726421,
+  "entries": 7939843,
+  "lookups_per_row": 57.081440123219096
+ },
+ "wanxiang-noctx": {
+  "file_mb": 472.726421,
+  "entries": 7939843,
+  "lookups_per_row": 57.081440123219096
+ }
+}
