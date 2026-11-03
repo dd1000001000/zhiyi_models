@@ -12,6 +12,8 @@ neutral word-choice test sets [v2](benchmarks/neutral-v2) and [v3](benchmarks/ne
 
 | Model | What it does | In Zhiyi IME | Download |
 | --- | --- | --- | --- |
+| ML-pumpkin-1103 | Multilingual word choice and composition, 12 layers, caches the context; better without context, with a one-graph KV-cache and a fused-operator version | Not yet | [model-ml-pumpkin-1103](https://github.com/dd1000001000/zhiyi_models/releases/tag/model-ml-pumpkin-1103) |
+| ML-Flash-1103 | Multilingual word choice and composition, 8 layers, caches the context; better without context, with a one-graph KV-cache and a fused-operator version | Not yet | [model-ml-flash-1103](https://github.com/dd1000001000/zhiyi_models/releases/tag/model-ml-flash-1103) |
 | ML-Flash-1031 | Multilingual word choice and composition, 8 layers, caches the context | Not yet | [model-ml-flash-1031](https://github.com/dd1000001000/zhiyi_models/releases/tag/model-ml-flash-1031) |
 | ML-pumpkin-1026 | Multilingual word choice and composition (Simplified Chinese, English, Traditional Chinese, Japanese, Korean, Vietnamese), 12 layers | Default from 1.6.0 | [model-ml-pumpkin-1026](https://github.com/dd1000001000/zhiyi_models/releases/tag/model-ml-pumpkin-1026) |
 | 1.4V2-ML-Preview-1024 | Multilingual preview (the round before ML-pumpkin-1026) | No | [model-ml-preview-1024](https://github.com/dd1000001000/zhiyi_models/releases/tag/model-ml-preview-1024) |
@@ -44,7 +46,7 @@ Zhiyi 1.4V2-Long-L12 ([release model-zhen-long-l12](https://github.com/dd1000001
 
 The multilingual preview [Zhiyi 1.4V2-ML-Preview-1024](https://github.com/dd1000001000/zhiyi_models/releases/tag/model-ml-preview-1024) adds word choice for Traditional Chinese, Japanese, Korean and Vietnamese and composition for Traditional Chinese and Japanese to Long-L12; its second round [Zhiyi ML-pumpkin-1026](https://github.com/dd1000001000/zhiyi_models/releases/tag/model-ml-pumpkin-1026) adds more Traditional composition and Korean data and is now the IME's default model (its Simplified Chinese and English); the 8-layer [Zhiyi ML-Flash-1031](https://github.com/dd1000001000/zhiyi_models/releases/tag/model-ml-flash-1031) caches the context and takes about a third of pumpkin's CPU time per key (not in the IME yet). Word n-grams for Traditional Chinese and Japanese are in [ngram-ml-1024](https://github.com/dd1000001000/zhiyi_models/releases/tag/ngram-ml-1024):
 
-<img src="media/ml_pumpkin.en-US.svg" alt="Zhiyi ML-pumpkin-1026, ML-Flash-1031 and 1.4V2-ML-Preview-1024, short (word choice) and long (whole sentence) accuracy per language: Simplified Chinese, English, Traditional Chinese, Japanese, Korean, Vietnamese" width="100%">
+<img src="media/ml_pumpkin.en-US.svg" alt="Zhiyi ML-pumpkin-1026, ML-Flash-1031, ML-Flash-1103, ML-pumpkin-1103 and 1.4V2-ML-Preview-1024, short (word choice) and long (whole sentence) accuracy per language: Simplified Chinese, English, Traditional Chinese, Japanese, Korean, Vietnamese" width="100%">
 
 
 ## Offline translation model

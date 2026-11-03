@@ -10,6 +10,8 @@ n-gram，以及学习模式里翻译候选的离线翻译模型。模型文件�
 
 | 模型 | 内容 | 知意输入法 | 下载 |
 | --- | --- | --- | --- |
+| ML-pumpkin-1103 | 多语言选词和组句，12 层，可以缓存上文；没有上文时更准，另附 KV cache 单图和算子融合版 | 未接入 | [model-ml-pumpkin-1103](https://github.com/dd1000001000/zhiyi_models/releases/tag/model-ml-pumpkin-1103) |
+| ML-Flash-1103 | 多语言选词和组句，8 层，可以缓存上文；没有上文时更准，另附 KV cache 单图和算子融合版 | 未接入 | [model-ml-flash-1103](https://github.com/dd1000001000/zhiyi_models/releases/tag/model-ml-flash-1103) |
 | ML-Flash-1031 | 多语言选词和组句，8 层，可以缓存上文 | 未接入 | [model-ml-flash-1031](https://github.com/dd1000001000/zhiyi_models/releases/tag/model-ml-flash-1031) |
 | ML-pumpkin-1026 | 多语言选词和组句（简体中文、英文、繁体中文、日文、韩文、越南文），12 层 | 1.6.0 起的默认模型 | [model-ml-pumpkin-1026](https://github.com/dd1000001000/zhiyi_models/releases/tag/model-ml-pumpkin-1026) |
 | 1.4V2-ML-Preview-1024 | 多语言预览版（ML-pumpkin-1026 的上一版） | 未接入 | [model-ml-preview-1024](https://github.com/dd1000001000/zhiyi_models/releases/tag/model-ml-preview-1024) |
@@ -42,7 +44,7 @@ ng1017+1.4V2-Long-L18 在 1.4V2-Long-L18 上加了一个词语 n-gram（三元�
 
 多语言预览版 [知意 1.4V2-ML-Preview-1024](https://github.com/dd1000001000/zhiyi_models/releases/tag/model-ml-preview-1024)在 Long-L12 上加了繁体中文、日文、韩文、越南文的选词和繁体、日文的组句；第二版 [知意 ML-pumpkin-1026](https://github.com/dd1000001000/zhiyi_models/releases/tag/model-ml-pumpkin-1026) 补了繁体组句和韩文的数据，是现在输入法的默认模型（用它的简体和英文）；8 层的 [知意 ML-Flash-1031](https://github.com/dd1000001000/zhiyi_models/releases/tag/model-ml-flash-1031) 可以缓存上文，每次按键的 CPU 耗时约为 pumpkin 的三分之一（未接入输入法）。繁体和日文的词语 n-gram 见 [ngram-ml-1024](https://github.com/dd1000001000/zhiyi_models/releases/tag/ngram-ml-1024)：
 
-<img src="media/ml_pumpkin.zh-CN.svg" alt="知意 ML-pumpkin-1026、ML-Flash-1031 与 1.4V2-ML-Preview-1024 各语言的短句（选词）和长句（整句）正确率：简体中文、英文、繁体中文、日文、韩文、越南文" width="100%">
+<img src="media/ml_pumpkin.zh-CN.svg" alt="知意 ML-pumpkin-1026、ML-Flash-1031、ML-Flash-1103、ML-pumpkin-1103 与 1.4V2-ML-Preview-1024 各语言的短句（选词）和长句（整句）正确率：简体中文、英文、繁体中文、日文、韩文、越南文" width="100%">
 
 
 ## 离线翻译模型
