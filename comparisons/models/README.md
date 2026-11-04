@@ -1,6 +1,6 @@
 # 选词 / 组句模型对比：知意、PinyinGPT、Rime 插件、LIME、水杉、青简、幽默、知字、吵吵
 
-各输入法的神经排序模型在[中立选词测试集 v2](../../benchmarks/neutral-v2/) 和 [v3](../../benchmarks/neutral-v3/) 上的首选准确率，只用模型，不用任何引擎和 n-gram；另附一项整句组句测试。Qwen3.5-2B-Base 作为通用语言模型的参考。测试日期：2026-11-03。
+各输入法的神经排序模型在[中立选词测试集 v2](../../benchmarks/neutral-v2/)、[v3](../../benchmarks/neutral-v3/)（网页）、[v4](../../benchmarks/neutral-v4/)（聊天）和 [v5](../../benchmarks/neutral-v5/)（困难集）上的首选准确率，只用模型，不用任何引擎和 n-gram；另附一项整句组句测试。Qwen3.5-2B-Base 作为通用语言模型的参考。测试日期：2026-11-03。
 
 > **说明**：测试结果仅供参考。除知意和青简（调用青简自己的代码）外，各家模型都是按其公开的文件格式和源码自己实现读取和打分，没有运行各家的输入法，难免与原作者的实际用法有出入；测试集、打分方式的偏差见下文。如果发现任何问题（读取或打分有误、版本不对、对哪一家不公平等），请到 [Issues](https://github.com/dd1000001000/zhiyi_models/issues) 提出，我们会核对并更正。
 >
@@ -9,6 +9,10 @@
 ![模型对比](media/models_compare.zh-CN.svg)
 
 ![准确率与计算量的帕累托前沿](media/models_pareto.zh-CN.svg)
+
+![v2 / v3 / v4 平均准确率与计算量的帕累托前沿](media/models_pareto_v234.zh-CN.svg)
+
+![v5 困难集准确率与计算量的帕累托前沿](media/models_pareto_v5.zh-CN.svg)
 
 ## 测了哪些
 
@@ -35,7 +39,7 @@
 | CNMBert | Hugging Face `Midsummra/CNMBert`（`7802eae`）的 `model.safetensors`：BERT 1.31 亿参数，把拼音首字母还原成汉字；代码 [IgarashiAkatuki/zh-CN-Multi-Mask-Bert](https://github.com/IgarashiAkatuki/zh-CN-Multi-Mask-Bert) | 523 MB | `89761d19…4ab2` | Feng 等，IJCNN 2025 | AGPL-3.0 |
 | Qwen3.5-2B-Base（参考） | Hugging Face `Qwen/Qwen3.5-2B-Base` | 4.55 GB | `928acbf1…df2d` | 通义千问 | Apache-2.0 |
 
-测试集：`neutral-v2.jsonl`（sha256 `1d624a68…6a06ff`，计分 5,211 行）、`neutral-v3.jsonl`（`5d9dc858…fe4b`，计分 10,388 行），都在本仓库的同名 Release 里。组句测试用我们内部的中立集 v1（12,000 个长分句，`35131f7f…4a5a`），**未公开**，所以组句结果别人暂时无法复现。
+测试集：`neutral-v2.jsonl`（sha256 `1d624a68…6a06ff`，计分 5,211 行）、`neutral-v3.jsonl`（`5d9dc858…fe4b`，计分 10,388 行）、`neutral-v4.jsonl`（`a86155bc…8ab8b81`，计分 17,072 行）、`neutral-v5.jsonl`（`6122bc27…1cf59`，计分 5,220 行），都在本仓库的同名 Release 里。组句测试用我们内部的中立集 v1（12,000 个长分句，`35131f7f…4a5a`），**未公开**，所以组句结果别人暂时无法复现。
 
 ## 怎么测
 
@@ -108,6 +112,40 @@
 - Rime-AI-IME：v2 −3.1（−3.9 ~ −2.2），v3 −1.8（−2.3 ~ −1.2）。
 - 青简 含章·知微：v3 −4.4（−5.0 ~ −3.8）。
 
+## 结果：聊天 v4 与困难集 v5（首选准确率 %）
+
+v4 是聊天（LCCC 对话，上文是前面几句话，79% 的计分行是单个词）；v5 是困难集（长片段、7–20 个候选、三分之二的行上文很短或没有，只留出候选的引擎自己排错了的行，所以引擎原顺序在 v5 上是 0）。打分方式和上面相同，每列最高分加粗。
+
+| | v4 全部 | v4 无上文 | v4 首字母 | v4 长句 | v5 全部 | v5 无上文 | v5 上文 1–32 字 | v5 上文 33 字以上 | v5 首字母 | v5 两词 |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 行数 | 17,072 | 1,234 | 777 | 2,073 | 5,220 | 1,813 | 1,878 | 1,529 | 739 | 1,782 |
+| 引擎原顺序 | 79.4 | 79.3 | 45.4 | 78.1 | 0 | 0 | 0 | 0 | 0 | 0 |
+| 知意 ML-pumpkin-1103 | **90.9** | 84.8 | 74.5 | 89.5 | 72.5 | 62.7 | 71.7 | 85.1 | 61.6 | 66.4 |
+| 知意 ML-Flash-1103 | **90.9** | 84.8 | 75.9 | 89.3 | 71.2 | 62.2 | 70.3 | 83.1 | 61.2 | 65.4 |
+| 知意 ML-pumpkin-1026 | 90.7 | **87.1** | **77.0** | 89.0 | 69.3 | 55.5 | 70.3 | 84.5 | 54.5 | 62.6 |
+| 知意 ML-Flash-1031 | 90.8 | 86.8 | 76.2 | 89.5 | 68.2 | 54.3 | 69.5 | 83.0 | 56.7 | 60.9 |
+| PinyinGPT-Concat（腾讯） | 89.0 | 77.6 | 73.2 | 88.1 | 73.9 | 59.2 | 76.3 | 88.2 | 65.1 | 67.7 |
+| GPT2-zh-21k（PinyinGPT 论文的冻结 GPT） | 85.3 | 74.6 | 63.6 | 85.0 | 70.0 | 55.4 | 72.2 | 84.5 | 62.7 | 62.3 |
+| Rime-AI-IME Qwen3.5-0.8B + LoRA | 79.4 | 56.8 | 56.5 | 73.1 | 63.7 | 45.1 | 67.5 | 81.2 | 55.1 | 59.9 |
+| rime-llm-reranker Qwen3.5-0.8B | 52.6 | 37.8 | 38.0 | 53.6 | 24.7 | 22.1 | 22.5 | 30.6 | 17.3 | 22.8 |
+| LIME Qwen3-0.6B | 85.8 | 65.6 | 65.6 | 86.4 | 78.8 | **63.8** | 81.6 | 93.0 | 66.4 | 71.7 |
+| 水杉 rerank-v1 8x448 | 87.6 | 81.0 | 75.3 | 90.9 | 72.6 | 62.2 | 73.5 | 83.8 | 64.0 | 66.0 |
+| 水杉 rerank-v1 6x256 | 87.1 | 81.5 | 73.6 | 90.2 | 69.1 | 58.7 | 70.4 | 79.9 | 58.5 | 62.3 |
+| 水杉 model-v1 25M | 86.4 | 83.5 | 73.7 | 89.3 | 62.1 | 54.1 | 62.7 | 70.8 | 53.3 | 57.2 |
+| 水杉 model-v1 4M | 81.9 | 80.6 | 65.6 | 83.6 | 50.2 | 44.8 | 49.9 | 57.0 | 41.3 | 46.7 |
+| 青简 含章·知微 | 89.3 | 84.7 | 74.8 | **91.9** | 65.3 | 54.3 | 65.0 | 78.7 | 54.0 | 57.2 |
+| 青简 含章·通变 | 70.5 | 74.7 | 31.1 | 77.7 | 55.3 | 54.9 | 55.0 | 56.2 | 37.6 | 43.3 |
+| 幽默输入法 句子模型 25M | 81.3 | 75.5 | 59.5 | 81.9 | 65.9 | 57.3 | 67.8 | 73.9 | 54.1 | 59.1 |
+| 知字输入法 顺手·知字 30M | 81.5 | 75.3 | 60.5 | 79.5 | 63.9 | 55.9 | 65.7 | 71.1 | 51.6 | 57.1 |
+| 吵吵拼音 CLMG v2 | 67.4 | 39.9 | 33.2 | 43.6 | 37.9 | 24.2 | 39.6 | 51.9 | 34.6 | 37.7 |
+| CNMBert（只测首字母行） | — | — | 62.7 | — | — | — | — | — | 40.6 | — |
+| Qwen3.5-2B-Base（参考：通用语言模型） | 87.3 | 54.7 | 69.6 | 89.4 | **80.3** | 62.7 | **84.8** | **95.8** | **70.5** | **72.6** |
+
+- **聊天**：通用语言模型和以它为底座的方法在 v4 上明显变弱（Qwen 2B 87.3、LIME 85.8），对话第一句没有上文时尤其如此（Qwen 54.7、LIME 65.6）；知意、青简知微、水杉这类专门的选词模型在没有上文时仍在 80 分以上。
+- **困难集**：v5 上各家都掉到 25–80 分。有长上文（33 字以上）时，大模型的世界知识优势最明显（Qwen 95.8、LIME 93.0），没有上文时最好的也只有 64 分左右（LIME 63.8，知意 pumpkin-1103 和 Qwen 都是 62.7）。
+- v5 只留下引擎排错的行，其中约 5% 的题两种写法都说得通（见 [v5 的说明](../../benchmarks/neutral-v5/)），所以上限不是 100%。
+- 上面两张帕累托图：一张用 v2、v3、v4 三套的平均分，一张只用 v5；横轴同上，为理论计算量。
+
 ### 大小和计算量（图中以知意 ML-Flash-1031 为 1.0）
 
 | 模型 | 文件大小 | 总参数量 | 理论计算量（v3 每行乘加） |
@@ -177,8 +215,10 @@ python cost.py --v3 neutral-v3.jsonl --zhiyi zhiyi-flash-1031=laya-ml-flash-1031
 ```
 
 ```bash
-python chart.py --v2 neutral-v2.jsonl --v3 neutral-v3.jsonl
+python chart.py --v2 neutral-v2.jsonl --v3 neutral-v3.jsonl --v4 neutral-v4.jsonl --v5 neutral-v5.jsonl
 ```
+
+v4、v5 的打分：上面三条 `run.py` 命令都加上 `--v4 neutral-v4.jsonl --v5 neutral-v5.jsonl`（已有的 v2、v3 分数文件会直接沿用），另加 `--zhiyi zhiyi-pumpkin-1103=… --zhiyi zhiyi-flash-1103=… --zhizi shunshou-zhizi-30m`。
 
 其他选项：`run.py --context_chars 100` 只给知意最后 100 字上文（结果名加 `-ctx100`）；`run.py --pinyingpt-typed <目录>` 按所打的样子给 PinyinGPT 喂拼音（`pinyingpt-concat-typed`）。组句用 `compose.py --v1 <v1 测试集> --zhiyi … --pinyingpt … --gpt2-zh-21k …`。
 
@@ -189,7 +229,7 @@ python chart.py --v2 neutral-v2.jsonl --v3 neutral-v3.jsonl
 | `run.py` | 选词：给每行的候选打分，写 `scores/` 和 `results.json` |
 | `compose.py` | 组句：每行输出前 5 句，写 `compose/`（不随仓库发布：很多输出就是未公开的 v1 原句）和 `results.json` 的 `compose` |
 | `cost.py` | 数文件大小、参数量，算每行理论计算量，写 `cost.json` |
-| `chart.py` | 从 `scores/` 和 `cost.json` 画 `media/models_compare.zh-CN.svg`（v2、v3 总分，文件大小、参数量、计算量）和 `media/models_pareto.zh-CN.svg`（v3 准确率对计算量的帕累托前沿） |
+| `chart.py` | 从 `scores/` 和 `cost.json` 画 `media/models_compare.zh-CN.svg`（v2、v3 总分，文件大小、参数量、计算量）、`media/models_pareto.zh-CN.svg`（v3 准确率对计算量的帕累托前沿），以及 `models_pareto_v234.zh-CN.svg`（v2、v3、v4 平均）和 `models_pareto_v5.zh-CN.svg`（v5） |
 | `zhiyi.py` | 知意 int8 ONNX：选词序列（整页）和组句序列、拼音槽对齐、组句的拼音约束 |
 | `pinyingpt.py` | PinyinGPT-Concat / GPT2-zh-21k：受约束的候选打分和 beam search |
 | `chat_judge.py` | Rime-AI-IME（底座 + LoRA）与 rime-llm-reranker：各自的提示词，答出每个候选的概率 |
@@ -201,6 +241,6 @@ python chart.py --v2 neutral-v2.jsonl --v3 neutral-v3.jsonl
 | `youmo.py` | 幽默句子模型（chinese-ime-lm 格式）的 PyTorch 实现和打分 |
 | `zhizi30m.py` | 知字 30M：用 onnxruntime（CPU）跑它的 ONNX，按它的输入格式打分 |
 | `chaoinput.py` | 吵吵 CLMG v2（`lmt.bin`）和词典先验 |
-| `scores/` | 每个模型在每套题上的分数，`{"id", "scores"}`，不比的候选为 null；含 `-ctx100` 和 `pinyingpt-concat-typed` 两种附加测试 |
+| `scores/` | 每个模型在每套题（v2–v5）上的分数，`{"id", "scores"}`，不比的候选为 null；含 `-ctx100` 和 `pinyingpt-concat-typed` 两种附加测试 |
 | `results.json` | 各组的行数和准确率；`compose` 为组句的 P@1 / P@5 |
 | `cost.json` | 各模型的文件大小、参数量和每行乘加次数 |

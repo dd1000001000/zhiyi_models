@@ -1,9 +1,10 @@
-"""Word-choice models of several input methods on the neutral word-choice test sets v2 and v3, each model alone.
+"""Word-choice models of several input methods on the neutral word-choice test sets v2 and v3 (web), v4 (chat) and v5
+(the hard set), each model alone.
 Every model gets the same rows and the same candidates; the pick is the best-scoring of the row's whole candidates
 (those that spell the whole input), right when it is the row's best. Scores go to scores/<model>_neutral-<set>.jsonl
 ({"id", "scores"} as the sets' score.py reads, null for candidates not scored), accuracies to results.json.
 
-  python run.py --v2 neutral-v2.jsonl --v3 neutral-v3.jsonl
+  python run.py --v2 neutral-v2.jsonl --v3 neutral-v3.jsonl [--v4 neutral-v4.jsonl --v5 neutral-v5.jsonl]
                 --zhiyi zhiyi-pumpkin-1026=<unpacked laya-ml-pumpkin-1026-int8g.zip> --zhiyi zhiyi-flash-1031=<...>
                 --metasequoia <rerank-v1 folder> --youmo sentence-model-large.safetensors
                 --chaoinput <ChaoInput-v3.3.16-win64/data>,<ChaoInput-src-v3.3.16/src/ChaoInput.LmTrain.Gpu/model.py>
@@ -28,7 +29,9 @@ sys.path.insert(0, HERE)
 
 GROUPS = {"all": lambda r: True, "full": lambda r: r["style"] == "full", "initials": lambda r: r["style"] == "initials",
           "partial/mixed": lambda r: r["style"] in ("partial", "mixed"), "short": lambda r: r["kind"] == "short",
-          "two": lambda r: r["kind"] == "two", "long": lambda r: r["kind"] == "long"}
+          "two": lambda r: r["kind"] == "two", "long": lambda r: r["kind"] == "long",
+          "no context": lambda r: not r["context"], "context 1-32": lambda r: 0 < len(r["context"]) <= 32,
+          "context 33+": lambda r: len(r["context"]) > 32}
 
 
 def whole_only(rows, score_rows, item):
@@ -162,6 +165,8 @@ def main():
     p = argparse.ArgumentParser()
     p.add_argument("--v2")
     p.add_argument("--v3")
+    p.add_argument("--v4", help="neutral-v4.jsonl (chat)")
+    p.add_argument("--v5", help="neutral-v5.jsonl (the hard set)")
     p.add_argument("--zhiyi", action="append", help="name=folder of an unpacked int8 release zip (repeatable)")
     for k in ("metasequoia", "youmo", "chaoinput", "qwen", "pinyingpt", "pinyingpt-typed", "gpt2-zh-21k",
               "metaseq-v1-4m", "metaseq-v1-25m", "lime", "cnmbert", "zhizi"):
@@ -174,7 +179,7 @@ def main():
     a = p.parse_args()
     os.makedirs(os.path.join(HERE, "scores"), exist_ok=True)
     out = {}
-    for v, data in (("v2", a.v2), ("v3", a.v3)):
+    for v, data in (("v2", a.v2), ("v3", a.v3), ("v4", a.v4), ("v5", a.v5)):
         if not data:
             continue
         rows = [json.loads(l) for l in open(data, encoding="utf-8")]
@@ -194,7 +199,8 @@ def main():
             out[v][name] = {}
             for g, test in GROUPS.items():
                 h = hits([r for r in scored if test(r)], sc)
-                out[v][name][g] = {"n": len(h), "acc": 100 * sum(h) / len(h)}
+                if h:
+                    out[v][name][g] = {"n": len(h), "acc": 100 * sum(h) / len(h)}
             print(f"{v} {name:<28}" + " ".join(f"{g} {x['acc']:.1f}" for g, x in out[v][name].items()), flush=True)
     old = json.load(open(os.path.join(HERE, "results.json"), encoding="utf-8")) if os.path.exists(
         os.path.join(HERE, "results.json")) else {}

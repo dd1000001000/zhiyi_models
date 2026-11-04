@@ -4,7 +4,7 @@
 
 [知意输入法](https://github.com/dd1000001000/zhiyi_ime)自己训练的模型：按光标前的文字给候选排序、把长拼音组成句子的选词模型，选词时一起打分的词语
 n-gram，以及学习模式里翻译候选的离线翻译模型。模型文件在各个 [Release](https://github.com/dd1000001000/zhiyi_models/releases) 里，这里是说明和评测结果。
-训练代码和训练、评测数据涉及第三方语料的版权，不公开；[中立选词测试集 v2](benchmarks/neutral-v2)、[v3](benchmarks/neutral-v3) 除外，供别人测试使用。
+训练代码和训练、评测数据涉及第三方语料的版权，不公开；[中立选词测试集 v2](benchmarks/neutral-v2)、[v3](benchmarks/neutral-v3)、[v4](benchmarks/neutral-v4)、[v5](benchmarks/neutral-v5) 除外，供别人测试使用。
 
 ## 模型一览
 
@@ -57,6 +57,14 @@ ng1017+1.4V2-Long-L18 在 1.4V2-Long-L18 上加了一个词语 n-gram（三元�
 
 <img src="media/pos_head.zh-CN.svg" alt="知意 v4-1026 词性头在兼类词上的词性正确率：UD 2.18 测试集 9 种语言的兼类词和手写的中英文对照，与只按词频、不给上文的词性头和 GLM-5.3 对比" width="100%">
 
+## 中立选词测试集 v5：困难集
+
+5,220 行难题：两个词或 6–20 个字的长片段，一半以上是简拼、混拼或末字只打一部分，每行 7–20 个候选，三分之二的行上文很短或没有；只保留出候选的引擎自己排错了的行（挑题不用任何神经网络模型），候选来源和 v3 相同。说明见 [benchmarks/neutral-v5](benchmarks/neutral-v5)，数据在 [Release neutral-v5](https://github.com/dd1000001000/zhiyi_models/releases/tag/neutral-v5)。
+
+## 中立选词测试集 v4：聊天
+
+25,243 行（17,072 行计分）聊天选词题：文本是公开对话测试集 LCCC-base 的 test 部分，上文是对话里前面几句话；候选来源和 v3 相同。LCCC 的作者声明其数据仅限科研用途，所以 v4 只能用于研究和评测。说明见 [benchmarks/neutral-v4](benchmarks/neutral-v4)，数据在 [Release neutral-v4](https://github.com/dd1000001000/zhiyi_models/releases/tag/neutral-v4)。
+
 ## 中立选词测试集 v3
 
 16,656 行简体中文拼音选词题：文本是 2026 年 10 月的中文网页，按词打字；每行的候选来自八个开源输入法引擎（知意、Rime 雾凇拼音、Rime 朙月拼音、幽默、libpinyin、fcitx5 libime、青简、水杉）中随机的一个，取它的前 3–20 个，并注明输入法和版本；附打分脚本，可以按引擎分组看结果。说明、字段和用法见 [benchmarks/neutral-v3](benchmarks/neutral-v3)，数据在 [Release neutral-v3](https://github.com/dd1000001000/zhiyi_models/releases/tag/neutral-v3)。
@@ -70,7 +78,7 @@ ng1017+1.4V2-Long-L18 在 1.4V2-Long-L18 上加了一个词语 n-gram（三元�
 知意自己训练的模型（各版选词模型、离线翻译模型 v2、v3、v4、v4-1026、ngram-ml-1024）的权重按 [Apache-2.0](LICENSE) 发布
 （2026-10-20 前为 GPL-3.0-only）；词语 n-gram ng1017 随其底座按 [LGPL-2.1-or-later](LICENSE-LGPL-2.1.txt) 发布；
 选词模型 safetensors 压缩包里的 `candle_ref/` 参考代码和知意输入法一样按 GPL-3.0-only 发布。上游部分保持各自的许可，
-每个压缩包附带对应的许可证。中立选词测试集 v2、v3 的数据库按 ODC-By 1.0 发布（[v2](benchmarks/neutral-v2/LICENSE-DATA.txt)、[v3](benchmarks/neutral-v3/LICENSE-DATA.txt)），网页原文的版权归原作者，v3 的候选来自各输入法引擎、引擎和词库保持各自的许可，打分脚本按 Apache-2.0 发布。
+每个压缩包附带对应的许可证。中立选词测试集 v2–v5 的数据库按 ODC-By 1.0 发布（[v2](benchmarks/neutral-v2/LICENSE-DATA.txt)、[v3](benchmarks/neutral-v3/LICENSE-DATA.txt)、[v4](benchmarks/neutral-v4/LICENSE-DATA.txt)、[v5](benchmarks/neutral-v5/LICENSE-DATA.txt)），网页原文的版权归原作者，v4 的对话文本来自 LCCC（MIT，作者声明仅限科研用途，见 [LICENSE-LCCC.txt](benchmarks/neutral-v4/LICENSE-LCCC.txt)），v3–v5 的候选来自各输入法引擎、引擎和词库保持各自的许可，打分脚本按 Apache-2.0 发布。
 
 ## 致谢
 
