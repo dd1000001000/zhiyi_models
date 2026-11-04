@@ -35,7 +35,19 @@ sys.path.insert(0, HERE)
 
 # the released graphs carry no encoder config: the attention kinds of the kept layers (mmBERT-small pruned), by depth
 LAYER_TYPES = {12: "FSSFSSFSSSSF", 8: "FSFSFSSF"}
-D, FF, HEAD_FF, WINDOW = 384, 1152, 1536, 128
+WINDOW = 128
+
+
+def zhiyi_shape(graph):
+    """Width d, encoder feed-forward FF, encoder depth and choice-head layers from a released graph's weights: the
+    token embedding is (rows, d); each encoder layer's mlp.Wo is (FF, d), each head layer's linear2 (4d, d)."""
+    import collections
+    import onnx
+    init = onnx.load(graph, load_external_data=False).graph.initializer
+    d = next(list(i.dims) for i in init if i.name.endswith("tok_embeddings.weight_quantized"))[1]
+    rows = collections.Counter(i.dims[0] for i in init if len(i.dims) == 2 and i.dims[1] == d and not i.name.startswith("u."))
+    ff = next(r for r, n in rows.items() if r not in (d, 4 * d) and n > 1)
+    return d, ff, rows[ff], rows[4 * d]
 
 
 def causal(ctx, cands, W, d, layers, out):
@@ -86,17 +98,16 @@ def main():
         from zhiyi import Zhiyi, units_for
         z = Zhiyi(folder, None)
         g = os.path.join(folder, "laya.int8g.onnx")
-        depth = sum(1 for i in onnx.load(g, load_external_data=False).graph.initializer if list(i.dims) == [D, 2 * FF])
+        d, FF, depth, head_n = zhiyi_shape(g)
         kinds = LAYER_TYPES[depth]
-        d = D
         enc = 3 * d * d + d * d + d * 2 * FF + FF * d  # Wqkv, Wo, Wi (gated), Wo
-        head = 2 * (3 * d * d + d * d + 2 * d * HEAD_FF)  # the choice head: two layers, attention + feed-forward
+        head = head_n * (3 * d * d + d * d + 2 * d * 4 * d)  # the choice head's layers, attention + feed-forward 4d
         per = []
         for r in rows:
             code = "".join(c for c in r["code"] if "a" <= c <= "z")
             L = len(z.sequence(r["context"], r["candidates"], units_for(r["candidates"][0], code) or [])[0])
             att = sum(2 * L * (L if k == "F" else min(L, WINDOW + 1)) * d for k in kinds)
-            per.append(L * (depth * enc + head) + att + 2 * 2 * L * L * d)
+            per.append(L * (depth * enc + head) + att + head_n * 2 * L * L * d)
         add(name, os.path.getsize(g), onnx_params(g), per)
 
     if a.metasequoia:

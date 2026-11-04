@@ -7,6 +7,9 @@ Sequence (choice_format "ctx-first"):
 The slots: the leading candidate's reading aligned with the letters typed, each syllable typed in full (f:zhong) or as
 a prefix (p:zh); none when that reading does not spell the code. Each slot's <mask> carries its unit vector (unit_ids);
 each candidate's <mask> is its marker, and the graph returns one logit per marker.
+The compact sequence (unified_vocab.json "choice_compact": zh-lite-preview): no <mask> before a candidate, each
+candidate tokenized with tokenizer.candidates.json (no leading "▁") and its first token as the marker:
+  <bos> context <eos> <mask> per syllable slot <eos> cand1(16 tokens) cand2 ... <eos>
 """
 import itertools
 import json
@@ -62,9 +65,13 @@ class Zhiyi:
         import onnxruntime as ort
         from tokenizers import Tokenizer
         self.tok = Tokenizer.from_file(os.path.join(folder, "tokenizer.json"))
-        self.bos, self.eos, self.mask, self.pad = (self.tok.token_to_id(t) for t in ("<bos>", "<eos>", "<mask>", "<pad>"))
+        self.bos, self.eos, self.mask, self.pad, self.unk = (self.tok.token_to_id(t)
+                                                             for t in ("<bos>", "<eos>", "<mask>", "<pad>", "<unk>"))
         v = json.load(open(os.path.join(folder, "unified_vocab.json"), encoding="utf-8"))
         assert v["choice_format"] == "ctx-first"
+        self.compact = v.get("choice_compact", False)
+        if self.compact:
+            self.ctok = Tokenizer.from_file(os.path.join(folder, "tokenizer.candidates.json"))
         self.unit_index = {u: i for i, u in enumerate(v["units"])}
         so = ort.SessionOptions()
         so.intra_op_num_threads = 4
@@ -106,7 +113,10 @@ class Zhiyi:
         markers = []
         for c in cands:
             markers.append(len(ids))
-            ids += [self.mask] + self._text(" " + c.replace("<mask>", " "), CAND_TOKENS)
+            if self.compact:
+                ids += self.ctok.encode(c.replace("<mask>", " "), add_special_tokens=False).ids[:CAND_TOKENS] or [self.unk]
+            else:
+                ids += [self.mask] + self._text(" " + c.replace("<mask>", " "), CAND_TOKENS)
         ids.append(self.eos)
         unit_ids += [0] * (len(ids) - len(unit_ids))
         return ids, unit_ids, markers

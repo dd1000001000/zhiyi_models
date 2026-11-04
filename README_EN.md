@@ -13,6 +13,7 @@ neutral word-choice test sets [v2](benchmarks/neutral-v2), [v3](benchmarks/neutr
 
 | Model | What it does | In Zhiyi IME | Download |
 | --- | --- | --- | --- |
+| zh-lite-preview | Simplified and Traditional Chinese word choice (preview), 8 layers of width 256, a compact input sequence; about a third of Flash's size and compute | Not yet (the engine does not build its input) | [model-zh-lite-preview](https://github.com/dd1000001000/zhiyi_models/releases/tag/model-zh-lite-preview) |
 | ML-pumpkin-1103 | Multilingual word choice and composition, 12 layers, caches the context; better without context, with a one-graph KV-cache and a fused-operator version | Not yet | [model-ml-pumpkin-1103](https://github.com/dd1000001000/zhiyi_models/releases/tag/model-ml-pumpkin-1103) |
 | ML-Flash-1103 | Multilingual word choice and composition, 8 layers, caches the context; better without context, with a one-graph KV-cache and a fused-operator version | Not yet | [model-ml-flash-1103](https://github.com/dd1000001000/zhiyi_models/releases/tag/model-ml-flash-1103) |
 | ML-Flash-1031 | Multilingual word choice and composition, 8 layers, caches the context | Not yet | [model-ml-flash-1031](https://github.com/dd1000001000/zhiyi_models/releases/tag/model-ml-flash-1031) |
