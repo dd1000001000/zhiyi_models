@@ -135,7 +135,7 @@ class T2S:
 
 
 class WanxiangGram:
-    def __init__(self, gram, dict_dir=None, essay=None, cfg=CFG, opencc=None):
+    def __init__(self, gram, dict_dir=None, essay=None, cfg=CFG, opencc=None, tables=None):
         self.cfg = cfg
         m = np.memmap(gram, np.uint8, "r")
         assert bytes(m[:14]) == b"Rime::Grammar/"
@@ -149,16 +149,19 @@ class WanxiangGram:
                 f[0] = t2s(f[0])
                 w = float(f[1])
                 self.weights[f[0]] = max(self.weights.get(f[0], -math.inf), math.log(w) if w > 0 else math.log(2.220446049250313e-16))
-        for t in TABLES if dict_dir else []:
-            body = False
+        for t in (tables or TABLES) if dict_dir else []:
+            body, cols, at = False, [], 2
             for line in open(os.path.join(dict_dir, t + ".dict.yaml"), encoding="utf-8"):
                 if not body:
                     body = line.startswith("...")
+                    if line.startswith("  - "):  # a header's columns (rime-ice's tencent: text, weight)
+                        cols.append(line[4:].split("#")[0].strip())
+                    at = cols.index("weight") if "weight" in cols else 2
                     continue
                 f = line.rstrip("\n").split("\t")
                 if len(f) < 2 or not f[0] or f[0].startswith("#"):
                     continue
-                num = re.match(r"[0-9.]+", f[2]) if len(f) > 2 else None  # "6N": std::stod reads the leading 6
+                num = re.match(r"[0-9.]+", f[at]) if len(f) > at else None  # "6N": std::stod reads the leading 6
                 w = float(num.group()) if num else 0.0
                 lw = math.log(w) if w > 0 else math.log(2.220446049250313e-16)
                 if lw > self.weights.get(f[0], -math.inf):

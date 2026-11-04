@@ -6,6 +6,9 @@ scores/<n-gram>_neutral-<set>.jsonl ({"id", "scores"}, null for candidates not c
                 --wanxiang-gram wanxiang-lts-zh-hans.gram --wanxiang-dict <dicts.zip unpacked>/dicts
                 --libime lm_sc.arpa --opengram lm_sc.3gm.std.arpa (opengram_arpa.py) --libpinyin <model20.text unpacked>
                 --rime-gram zh-hans-t-essay-bgw.gram --rime-essay essay.txt --rime-opencc <OpenCC data/dictionary> --qingjian-lm <qj-score exe>,lm.qj
+                --ximegboard-gram XimeGboard.gram --ximegboard-dict <its APK's assets/rime/cn_dicts>
+XimeGboard (Murchey/Xime-Gboardlike): its octagram with the dictionary of its default schema rime_ice (the tables
+rime_ice.dict.yaml imports), librime-octagram's default parameters (the schema sets none), contextual_suggestions on.
 Score files already in scores/ are reused; remove one to score it again.
 """
 import argparse
@@ -20,6 +23,7 @@ sys.path.insert(0, HERE)
 GROUPS = {"all": lambda r: True, "full": lambda r: r["style"] == "full", "initials": lambda r: r["style"] == "initials",
           "partial/mixed": lambda r: r["style"] in ("partial", "mixed"), "short": lambda r: r["kind"] == "short",
           "two": lambda r: r["kind"] == "two", "long": lambda r: r["kind"] == "long"}
+XIMEGBOARD_TABLES = ["8105", "base", "ext", "tencent", "others"]
 
 
 def scorers(a):
@@ -57,6 +61,11 @@ def scorers(a):
         wg = WanxiangGram(a.rime_gram, essay=a.rime_essay, cfg=RIME_CFG, opencc=a.rime_opencc)
         return lambda c, cands: wg.score(c, cands, ctx=True)
 
+    def ximegboard():
+        from wanxiang_gram import RIME_CFG, WanxiangGram
+        wg = WanxiangGram(a.ximegboard_gram, a.ximegboard_dict, cfg=RIME_CFG, tables=XIMEGBOARD_TABLES)
+        return lambda c, cands: wg.score(c, cands, ctx=True)
+
     def qingjian():
         import json
         import subprocess
@@ -71,7 +80,7 @@ def scorers(a):
            "wanxiang-noctx": wanxiang(False)}
     for name, ok, fn in (("libime-lm-sc", a.libime, arpa(a.libime)), ("opengram-sunpinyin", a.opengram, arpa(a.opengram)),
                          ("libpinyin-model20", a.libpinyin, libpinyin), ("rime-octagram-hans", a.rime_gram, rime),
-                         ("qingjian-lm", a.qingjian_lm, qingjian)):
+                         ("qingjian-lm", a.qingjian_lm, qingjian), ("ximegboard-octagram", a.ximegboard_gram, ximegboard)):
         if ok:
             out[name] = fn
     return out
@@ -100,7 +109,7 @@ def main():
     sys.stdout.reconfigure(encoding="utf-8")
     p = argparse.ArgumentParser()
     for k in ("v2", "v3", "zhiyi", "youmo", "cyime", "wanxiang-gram", "wanxiang-dict", "libime", "opengram", "libpinyin",
-              "rime-gram", "rime-essay", "rime-opencc", "qingjian-lm"):
+              "rime-gram", "rime-essay", "rime-opencc", "qingjian-lm", "ximegboard-gram", "ximegboard-dict"):
         p.add_argument("--" + k)
     a = p.parse_args()
     os.makedirs(os.path.join(HERE, "scores"), exist_ok=True)
@@ -115,7 +124,10 @@ def main():
                 h = hits([r for r in rows if test(r)], sc)
                 out[v][name][g] = {"n": len(h), "acc": 100 * sum(h) / len(h)}
             print(f"{v} {name:<15}" + " ".join(f"{g} {x['acc']:.1f}" for g, x in out[v][name].items()), flush=True)
-    json.dump(out, open(os.path.join(HERE, "results.json"), "w", encoding="utf-8"), indent=1)
+    path = os.path.join(HERE, "results.json")
+    old = json.load(open(path, encoding="utf-8")) if os.path.exists(path) else {}
+    json.dump({v: old.get(v, {}) | out.get(v, {}) for v in old.keys() | out.keys()}, open(path, "w", encoding="utf-8"),
+              indent=1)
 
 
 if __name__ == "__main__":

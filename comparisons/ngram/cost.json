@@ -48,5 +48,10 @@
   "file_mb": 44.806288,
   "entries": 5053608,
   "lookups_per_row": 134.06574894108587
+ },
+ "ximegboard-octagram": {
+  "file_mb": 72.178619,
+  "entries": 3039200,
+  "lookups_per_row": 57.159414709279936
  }
 }
