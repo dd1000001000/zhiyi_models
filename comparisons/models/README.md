@@ -8,8 +8,6 @@
 
 ![模型对比](media/models_compare.zh-CN.svg)
 
-![准确率与计算量的帕累托前沿](media/models_pareto.zh-CN.svg)
-
 ![v2 / v3 / v4 平均准确率与计算量的帕累托前沿](media/models_pareto_v234.zh-CN.svg)
 
 ![v5 困难集准确率与计算量的帕累托前沿](media/models_pareto_v5.zh-CN.svg)
@@ -144,7 +142,7 @@ v4 是聊天（LCCC 对话，上文是前面几句话，79% 的计分行是单�
 - **聊天**：通用语言模型和以它为底座的方法在 v4 上明显变弱（Qwen 2B 87.3、LIME 85.8），对话第一句没有上文时尤其如此（Qwen 54.7、LIME 65.6）；知意、青简知微、水杉这类专门的选词模型在没有上文时仍在 80 分以上。
 - **困难集**：v5 上各家都掉到 25–80 分。有长上文（33 字以上）时，大模型的世界知识优势最明显（Qwen 95.8、LIME 93.0），没有上文时最好的也只有 64 分左右（LIME 63.8，知意 pumpkin-1103 和 Qwen 都是 62.7）。
 - v5 只留下引擎排错的行，其中约 5% 的题两种写法都说得通（见 [v5 的说明](../../benchmarks/neutral-v5/)），所以上限不是 100%。
-- 上面两张帕累托图：一张用 v2、v3、v4 三套的平均分，一张只用 v5；横轴同上，为理论计算量。
+- 页首的柱状图含 v4 总分；两张帕累托图一张用 v2、v3、v4 三套的平均分，一张只用 v5，横轴为理论计算量。
 
 ### 大小和计算量（图中以知意 ML-Flash-1031 为 1.0）
 
@@ -229,7 +227,7 @@ v4、v5 的打分：上面三条 `run.py` 命令都加上 `--v4 neutral-v4.jsonl
 | `run.py` | 选词：给每行的候选打分，写 `scores/` 和 `results.json` |
 | `compose.py` | 组句：每行输出前 5 句，写 `compose/`（不随仓库发布：很多输出就是未公开的 v1 原句）和 `results.json` 的 `compose` |
 | `cost.py` | 数文件大小、参数量，算每行理论计算量，写 `cost.json` |
-| `chart.py` | 从 `scores/` 和 `cost.json` 画 `media/models_compare.zh-CN.svg`（v2、v3 总分，文件大小、参数量、计算量）、`media/models_pareto.zh-CN.svg`（v3 准确率对计算量的帕累托前沿），以及 `models_pareto_v234.zh-CN.svg`（v2、v3、v4 平均）和 `models_pareto_v5.zh-CN.svg`（v5） |
+| `chart.py` | 从 `scores/` 和 `cost.json` 画 `media/models_compare.zh-CN.svg`（v2、v3、v4 总分，文件大小、参数量、计算量），以及准确率对计算量的帕累托前沿 `models_pareto_v234.zh-CN.svg`（v2、v3、v4 平均）和 `models_pareto_v5.zh-CN.svg`（v5） |
 | `zhiyi.py` | 知意 int8 ONNX：选词序列（整页）和组句序列、拼音槽对齐、组句的拼音约束 |
 | `pinyingpt.py` | PinyinGPT-Concat / GPT2-zh-21k：受约束的候选打分和 beam search |
 | `chat_judge.py` | Rime-AI-IME（底座 + LoRA）与 rime-llm-reranker：各自的提示词，答出每个候选的概率 |
