@@ -212,10 +212,6 @@ python run.py --v2 neutral-v2.jsonl --v3 neutral-v3.jsonl --metaseq-v1-4m senten
 python cost.py --v3 neutral-v3.jsonl --zhiyi zhiyi-flash-1031=laya-ml-flash-1031-int8g --metasequoia rerank-v1 --youmo sentence-model-large.safetensors --chaoinput ChaoInput-v3.3.16-win64/data,ChaoInput-src-v3.3.16/src/ChaoInput.LmTrain.Gpu/model.py --qwen Qwen3.5-2B-Base --pinyingpt transformers4ime-pinyingpt-concat --gpt2-zh-21k gpt2-zh-21k --metaseq-v1-4m sentence-model.safetensors --metaseq-v1-25m sentence-model-desktop.safetensors --rime-ai-ime Qwen3.5-0.8B,qwen35-08b-ime-v1-Q8_0.gguf --fujik0 Qwen3.5-0.8B,Qwen3.5-0.8B/model.safetensors-00001-of-00001.safetensors --lime Qwen3-0.6B,367804096 --cnmbert CNMBert --qingjian hanzhang-tongbian-small.qjm,hanzhang-zhiwei-small.qjm --zhizi shunshou-zhizi-30m
 ```
 
-```bash
-python chart.py --v2 neutral-v2.jsonl --v3 neutral-v3.jsonl --v4 neutral-v4.jsonl --v5 neutral-v5.jsonl
-```
-
 v4、v5 的打分：上面三条 `run.py` 命令都加上 `--v4 neutral-v4.jsonl --v5 neutral-v5.jsonl`（已有的 v2、v3 分数文件会直接沿用），另加 `--zhiyi zhiyi-pumpkin-1103=… --zhiyi zhiyi-flash-1103=… --zhizi shunshou-zhizi-30m`。
 
 其他选项：`run.py --context_chars 100` 只给知意最后 100 字上文（结果名加 `-ctx100`）；`run.py --pinyingpt-typed <目录>` 按所打的样子给 PinyinGPT 喂拼音（`pinyingpt-concat-typed`）。组句用 `compose.py --v1 <v1 测试集> --zhiyi … --pinyingpt … --gpt2-zh-21k …`。
@@ -227,7 +223,7 @@ v4、v5 的打分：上面三条 `run.py` 命令都加上 `--v4 neutral-v4.jsonl
 | `run.py` | 选词：给每行的候选打分，写 `scores/` 和 `results.json` |
 | `compose.py` | 组句：每行输出前 5 句，写 `compose/`（不随仓库发布：很多输出就是未公开的 v1 原句）和 `results.json` 的 `compose` |
 | `cost.py` | 数文件大小、参数量，算每行理论计算量，写 `cost.json` |
-| `chart.py` | 从 `scores/` 和 `cost.json` 画 `media/models_compare.zh-CN.svg`（v2、v3、v4 总分，文件大小、参数量、计算量），以及准确率对计算量的帕累托前沿 `models_pareto_v234.zh-CN.svg`（v2、v3、v4 平均）和 `models_pareto_v5.zh-CN.svg`（v5） |
+| `media/` | 图：`models_compare.zh-CN.svg`（v2、v3、v4 总分，文件大小、参数量、计算量），准确率对计算量的帕累托前沿 `models_pareto_v234.zh-CN.svg`（v2、v3、v4 平均）和 `models_pareto_v5.zh-CN.svg`（v5）；图里的数都来自 `results.json` 和 `cost.json` |
 | `zhiyi.py` | 知意 int8 ONNX：选词序列（整页）和组句序列、拼音槽对齐、组句的拼音约束 |
 | `pinyingpt.py` | PinyinGPT-Concat / GPT2-zh-21k：受约束的候选打分和 beam search |
 | `chat_judge.py` | Rime-AI-IME（底座 + LoRA）与 rime-llm-reranker：各自的提示词，答出每个候选的概率 |

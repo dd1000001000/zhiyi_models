@@ -106,10 +106,6 @@ python run.py --v2 neutral-v2.jsonl --v3 neutral-v3.jsonl --zhiyi zh.ngram --you
 python cost.py --v3 neutral-v3.jsonl --zhiyi zh.ngram --youmo lm.arpa --cyime t9_ngram-v3-ls-tri-c3.lm --wanxiang-gram wanxiang-lts-zh-hans.gram --wanxiang-dict dicts/dicts --libime lm_sc.arpa,sc.lm --opengram lm_sc.3gm.std.arpa,lm_sc.3gm.arpa --libpinyin model20 --rime-gram zh-hans-t-essay-bgw.gram --rime-essay essay.txt --rime-opencc OpenCC/data/dictionary --qingjian-lm qj-score.exe,lm.qj
 ```
 
-```bash
-python chart.py --v2 neutral-v2.jsonl --v3 neutral-v3.jsonl
-```
-
 ## 文件
 
 | 文件 | 内容 |
@@ -117,7 +113,7 @@ python chart.py --v2 neutral-v2.jsonl --v3 neutral-v3.jsonl
 | `run.py` | 给每行的整串候选打分，写 `scores/` 和 `results.json` |
 | `cost.py` | 数文件大小、条目数和每行查询次数，写 `cost.json` |
 | `cost.json` | 各 n-gram 的文件大小、条目数和每行查询次数 |
-| `chart.py` | 从 `scores/` 和 `cost.json` 画 `media/ngram_compare.zh-CN.svg`：v2、v3 总分（含 95% bootstrap 区间），文件大小、条目数、查询次数（以 ng1017 为 1.0），和 `media/ngram_pareto.zh-CN.svg`（v3 准确率对查询次数的帕累托前沿） |
+| `media/` | 图：`ngram_compare.zh-CN.svg`（v2、v3 总分，含 95% bootstrap 区间；文件大小、条目数、查询次数，以 ng1017 为 1.0）和 `ngram_pareto.zh-CN.svg`（v3 准确率对查询次数的帕累托前沿）；图里的数都来自 `results.json` 和 `cost.json` |
 | `ngram_lm.py` | 知意 n-gram（`.ngram`）和 ARPA（幽默、libime、sunpinyin）的读取和打分 |
 | `opengram_arpa.py` | sunpinyin open-gram 的线性概率文本转标准 ARPA |
 | `libpinyin_lm.py` | libpinyin 插值二元模型的读取和打分 |
