@@ -12,10 +12,12 @@
                  --libime lm_sc.arpa,sc.lm --opengram lm_sc.3gm.std.arpa,lm_sc.3gm.arpa --libpinyin <model20.text unpacked>
                  --rime-gram zh-hans-t-essay-bgw.gram --rime-essay essay.txt --rime-opencc <dir> --qingjian-lm <qj-score>,lm.qj
                  --ximegboard-gram XimeGboard.gram --ximegboard-dict <its APK's assets/rime/cn_dicts>
+                 --windinput-gram wanxiang-mini.gram --windinput-dict <its package's data/schemas/pinyin/cn_dicts>
 -> cost.json (merged into the existing one: give only the n-grams to count)
 File sizes of the new ones: libime its built sc.lm (kenlm binary, the file fcitx5 installs; chinese-ime-lm's release
 language-model-libime-20260629 carries the same build), open-gram its lm_sc.3gm.arpa text, libpinyin interpolation2.text,
-Rime the grammar plus essay.txt, Qingjian lm.qj, XimeGboard the grammar plus the 5 rime_ice tables (text).
+Rime the grammar plus essay.txt, Qingjian lm.qj, XimeGboard the grammar plus the 5 rime_ice tables (text),
+WindInput the grammar plus the 6 rime_frost tables (text).
 """
 import argparse
 import json
@@ -45,7 +47,8 @@ def main():
     sys.stdout.reconfigure(encoding="utf-8")
     p = argparse.ArgumentParser()
     for k in ("v3", "zhiyi", "youmo", "cyime", "wanxiang-gram", "wanxiang-dict", "libime", "opengram", "libpinyin",
-              "rime-gram", "rime-essay", "rime-opencc", "qingjian-lm", "ximegboard-gram", "ximegboard-dict"):
+              "rime-gram", "rime-essay", "rime-opencc", "qingjian-lm", "ximegboard-gram", "ximegboard-dict",
+              "windinput-gram", "windinput-dict"):
         p.add_argument("--" + k)
     a = p.parse_args()
     rows = [r for r in map(json.loads, open(a.v3, encoding="utf-8")) if r["scored"]]
@@ -181,6 +184,32 @@ def main():
         xg.query = counted_xq
         add("ximegboard-octagram", size, keys + entries,
             lookups(rows, lambda c, cands: xg.score(c, cands, ctx=True), lambda: q[0] + CountingDict.n))
+
+    if a.windinput_gram:
+        from windinput_gram import TABLES as WIND_TABLES, WindGram
+        wg2 = WindGram(a.windinput_gram, a.windinput_dict, weight=0.5)
+        keys = int(((wg2.trie.a >> 31) & 1).sum())
+        entries = 0
+        for t in WIND_TABLES:
+            body = False
+            for line in open(os.path.join(a.windinput_dict, t + ".dict.yaml"), encoding="utf-8"):
+                if not body:
+                    body = line.startswith("...")
+                    continue
+                f = line.split("\t")
+                entries += len(f) >= 2 and bool(f[0]) and not f[0].startswith("#")
+        size = os.path.getsize(a.windinput_gram) + sum(
+            os.path.getsize(os.path.join(a.windinput_dict, t + ".dict.yaml")) for t in WIND_TABLES)
+        CountingDict.n = 0
+        wg2.words = CountingDict(wg2.words)
+        q = [0]
+        query_w = wg2.query
+
+        def counted_wq(context, word, rear):
+            q[0] += 1
+            return query_w(context, word, rear)
+        wg2.query = counted_wq
+        add("windinput-gram", size, keys + entries, lookups(rows, wg2.score, lambda: q[0] + CountingDict.n))
 
     if a.qingjian_lm:
         import subprocess
