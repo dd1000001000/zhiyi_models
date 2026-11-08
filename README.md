@@ -12,9 +12,9 @@ n-gram，以及学习模式里翻译候选的离线翻译模型。模型文件�
 | --- | --- | --- | --- |
 | zh-lite-preview | 简体、繁体中文选词（预览），8 层、宽 256，紧凑输入格式；大小和计算量约为 Flash 的三分之一 | 未接入（引擎还不支持它的输入格式） | [model-zh-lite-preview](https://github.com/dd1000001000/zhiyi_models/releases/tag/model-zh-lite-preview) |
 | ML-pumpkin-1103 | 多语言选词和组句，12 层，可以缓存上文；没有上文时更准，另附 KV cache 单图和算子融合版 | 未接入 | [model-ml-pumpkin-1103](https://github.com/dd1000001000/zhiyi_models/releases/tag/model-ml-pumpkin-1103) |
-| ML-Flash-1103 | 多语言选词和组句，8 层，可以缓存上文；没有上文时更准，另附 KV cache 单图和算子融合版 | 未接入 | [model-ml-flash-1103](https://github.com/dd1000001000/zhiyi_models/releases/tag/model-ml-flash-1103) |
+| ML-Flash-1103 | 多语言选词和组句，8 层，可以缓存上文；没有上文时更准，另附 KV cache 单图和算子融合版 | 1.6.4 起的默认模型 | [model-ml-flash-1103](https://github.com/dd1000001000/zhiyi_models/releases/tag/model-ml-flash-1103) |
 | ML-Flash-1031 | 多语言选词和组句，8 层，可以缓存上文 | 未接入 | [model-ml-flash-1031](https://github.com/dd1000001000/zhiyi_models/releases/tag/model-ml-flash-1031) |
-| ML-pumpkin-1026 | 多语言选词和组句（简体中文、英文、繁体中文、日文、韩文、越南文），12 层 | 1.6.0 起的默认模型 | [model-ml-pumpkin-1026](https://github.com/dd1000001000/zhiyi_models/releases/tag/model-ml-pumpkin-1026) |
+| ML-pumpkin-1026 | 多语言选词和组句（简体中文、英文、繁体中文、日文、韩文、越南文），12 层 | 1.6.0–1.6.3 | [model-ml-pumpkin-1026](https://github.com/dd1000001000/zhiyi_models/releases/tag/model-ml-pumpkin-1026) |
 | 1.4V2-ML-Preview-1024 | 多语言预览版（ML-pumpkin-1026 的上一版） | 未接入 | [model-ml-preview-1024](https://github.com/dd1000001000/zhiyi_models/releases/tag/model-ml-preview-1024) |
 | 1.4V2-Long-L12 | 中英文选词和组句，12 层 | 1.5.12–1.5.18 | [model-zhen-long-l12](https://github.com/dd1000001000/zhiyi_models/releases/tag/model-zhen-long-l12) |
 | 1.4V2-Long-L18 | 中英文选词和组句，18 层 | 1.5.9–1.5.11 | [model-zhen-long-l18](https://github.com/dd1000001000/zhiyi_models/releases/tag/model-zhen-long-l18) |
@@ -43,7 +43,7 @@ ng1017+1.4V2-Long-L18 在 1.4V2-Long-L18 上加了一个词语 n-gram（三元�
 
 <img src="media/choice2.zh-CN.svg" alt="新选词测试集：(a) 中文词和两个词 (b) 中文长句 (c) 英文单词 (d) 中文全打声母 (e) 英文只打前几个字母 (f) CPU 每页耗时；只按词频、原始 Laya、ng1017+1.4V2-Long-L12、ng1017+ML-pumpkin-1026、ng1017+ML-Flash-1031、ng1017+ML-Flash-1103、ng1017+ML-pumpkin-1103 与 ng1017+zh-lite-preview（只有中文面板）" width="100%">
 
-多语言预览版 [知意 1.4V2-ML-Preview-1024](https://github.com/dd1000001000/zhiyi_models/releases/tag/model-ml-preview-1024)在 Long-L12 上加了繁体中文、日文、韩文、越南文的选词和繁体、日文的组句；第二版 [知意 ML-pumpkin-1026](https://github.com/dd1000001000/zhiyi_models/releases/tag/model-ml-pumpkin-1026) 补了繁体组句和韩文的数据，是现在输入法的默认模型（用它的简体和英文）；8 层的 [知意 ML-Flash-1031](https://github.com/dd1000001000/zhiyi_models/releases/tag/model-ml-flash-1031) 可以缓存上文，每次按键的 CPU 耗时约为 pumpkin 的三分之一（未接入输入法）。繁体和日文的词语 n-gram 见 [ngram-ml-1024](https://github.com/dd1000001000/zhiyi_models/releases/tag/ngram-ml-1024)：
+多语言预览版 [知意 1.4V2-ML-Preview-1024](https://github.com/dd1000001000/zhiyi_models/releases/tag/model-ml-preview-1024)在 Long-L12 上加了繁体中文、日文、韩文、越南文的选词和繁体、日文的组句；第二版 [知意 ML-pumpkin-1026](https://github.com/dd1000001000/zhiyi_models/releases/tag/model-ml-pumpkin-1026) 补了繁体组句和韩文的数据，是 1.6.0–1.6.3 的默认模型（用它的简体和英文）；8 层的 [知意 ML-Flash-1031](https://github.com/dd1000001000/zhiyi_models/releases/tag/model-ml-flash-1031) 可以缓存上文，每次按键的 CPU 耗时约为 pumpkin 的三分之一（未接入输入法）。1.6.4 起输入法的默认模型是 8 层的 [知意 ML-Flash-1103](https://github.com/dd1000001000/zhiyi_models/releases/tag/model-ml-flash-1103)，在 CPU 上缓存上文。繁体和日文的词语 n-gram 见 [ngram-ml-1024](https://github.com/dd1000001000/zhiyi_models/releases/tag/ngram-ml-1024)：
 
 <img src="media/ml_pumpkin.zh-CN.svg" alt="知意 ML-pumpkin-1026、ML-Flash-1031、ML-Flash-1103、ML-pumpkin-1103 与 1.4V2-ML-Preview-1024 各语言的短句（选词）和长句（整句）正确率：简体中文、英文、繁体中文、日文、韩文、越南文" width="100%">
 
