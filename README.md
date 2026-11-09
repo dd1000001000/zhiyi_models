@@ -10,6 +10,7 @@ n-gram，以及学习模式里翻译候选的离线翻译模型。模型文件�
 
 | 模型 | 内容 | 知意输入法 | 下载 |
 | --- | --- | --- | --- |
+| zh-lite-next-preview | zh-lite-preview 加英文选词，再加简体中文、英文续写（猜下一个词）和中文补全（预览）；选词 8 层、宽 256，续写解码器 4 层 | 未接入 | [model-zh-lite-next-preview](https://github.com/dd1000001000/zhiyi_models/releases/tag/model-zh-lite-next-preview) |
 | zh-lite-preview | 简体、繁体中文选词（预览），8 层、宽 256，紧凑输入格式；大小和计算量约为 Flash 的三分之一 | 未接入（引擎还不支持它的输入格式） | [model-zh-lite-preview](https://github.com/dd1000001000/zhiyi_models/releases/tag/model-zh-lite-preview) |
 | ML-pumpkin-1103 | 多语言选词和组句，12 层，可以缓存上文；没有上文时更准，另附 KV cache 单图和算子融合版 | 未接入 | [model-ml-pumpkin-1103](https://github.com/dd1000001000/zhiyi_models/releases/tag/model-ml-pumpkin-1103) |
 | ML-Flash-1103 | 多语言选词和组句，8 层，可以缓存上文；没有上文时更准，另附 KV cache 单图和算子融合版 | 1.6.4 起的默认模型 | [model-ml-flash-1103](https://github.com/dd1000001000/zhiyi_models/releases/tag/model-ml-flash-1103) |
@@ -41,12 +42,18 @@ ng1017+1.4V2-Long-L18 在 1.4V2-Long-L18 上加了一个词语 n-gram（三元�
 
 知意 1.4V2-Long-L12（[Release model-zhen-long-l12](https://github.com/dd1000001000/zhiyi_models/releases/tag/model-zhen-long-l12)，Apache-2.0，含 safetensors 版）是 1.5.12–1.5.18 的默认模型，1.4V2 只保留 12 层编码器（22 层 → 12 层）的新模型。选词用微调过的 Qwen3.5-9B 老师在约 377 万条数据上蒸馏：1.4V2-Long-L18 的约 170 万条之外，新加约 172 万条 SkyPile、LCCC、C4、SODA 的文本，和约 35 万条 [FineWeb](https://huggingface.co/datasets/HuggingFaceFW/fineweb)、[FineWeb-2](https://huggingface.co/datasets/HuggingFaceFW/fineweb-2)（ODC-By 1.0）的近年网页，中英文约 3:1。组句头由另一个微调过、按字写出所打汉字的 Qwen3.5-9B 老师蒸馏，用了约 431 万条组句数据，其中 220 万条带老师打分。加上 ng1017 后在输入法引擎里端到端，它和 ng1017+1.4V2-Long-L18 打平：中文词和两个词 87.7%（87.6%），长句 74.9%（74.5%），英文 89.5%（90.2%），全打声母 76.3%（77.7%），英文只打前几个字母 75.7%（77.3%），差别都在抽样误差之内；CPU 上一页 10.4 ms（14.7 ms），快约三成，模型文件 84 MB（96 MB）。1.5.12–1.5.18 输入法带的是 ng1017+1.4V2-Long-L12。
 
-<img src="media/choice2.zh-CN.svg" alt="新选词测试集：(a) 中文词和两个词 (b) 中文长句 (c) 英文单词 (d) 中文全打声母 (e) 英文只打前几个字母 (f) CPU 每页耗时；只按词频、原始 Laya、ng1017+1.4V2-Long-L12、ng1017+ML-pumpkin-1026、ng1017+ML-Flash-1031、ng1017+ML-Flash-1103、ng1017+ML-pumpkin-1103 与 ng1017+zh-lite-preview（只有中文面板）" width="100%">
+<img src="media/choice2.zh-CN.svg" alt="新选词测试集：(a) 中文词和两个词 (b) 中文长句 (c) 英文单词 (d) 中文全打声母 (e) 英文只打前几个字母 (f) CPU 每页耗时；只按词频、原始 Laya、ng1017+1.4V2-Long-L12、ng1017+ML-pumpkin-1026、ng1017+ML-Flash-1031、ng1017+ML-Flash-1103、ng1017+ML-pumpkin-1103、ng1017+zh-lite-preview（只有中文面板）与 ng1017+zh-lite-next-preview" width="100%">
 
 多语言预览版 [知意 1.4V2-ML-Preview-1024](https://github.com/dd1000001000/zhiyi_models/releases/tag/model-ml-preview-1024)在 Long-L12 上加了繁体中文、日文、韩文、越南文的选词和繁体、日文的组句；第二版 [知意 ML-pumpkin-1026](https://github.com/dd1000001000/zhiyi_models/releases/tag/model-ml-pumpkin-1026) 补了繁体组句和韩文的数据，是 1.6.0–1.6.3 的默认模型（用它的简体和英文）；8 层的 [知意 ML-Flash-1031](https://github.com/dd1000001000/zhiyi_models/releases/tag/model-ml-flash-1031) 可以缓存上文，每次按键的 CPU 耗时约为 pumpkin 的三分之一（未接入输入法）。1.6.4 起输入法的默认模型是 8 层的 [知意 ML-Flash-1103](https://github.com/dd1000001000/zhiyi_models/releases/tag/model-ml-flash-1103)，在 CPU 上缓存上文。繁体和日文的词语 n-gram 见 [ngram-ml-1024](https://github.com/dd1000001000/zhiyi_models/releases/tag/ngram-ml-1024)：
 
 <img src="media/ml_pumpkin.zh-CN.svg" alt="知意 ML-pumpkin-1026、ML-Flash-1031、ML-Flash-1103、ML-pumpkin-1103 与 1.4V2-ML-Preview-1024 各语言的短句（选词）和长句（整句）正确率：简体中文、英文、繁体中文、日文、韩文、越南文" width="100%">
 
+
+## 续写模型
+
+[知意 zh-lite-next-preview](https://github.com/dd1000001000/zhiyi_models/releases/tag/model-zh-lite-next-preview) 在 zh-lite-preview 上加了英文候选和一个续写解码器：上屏后猜下一个词（中文模式出简体词，英文模式出英文词），中文还能补全打了前几个字的词。解码器的输出就是模型自己的词元，不靠词表；老师是 Qwen3-1.7B-Base（只用了它给的词）。未接入输入法。
+
+<img src="media/next_word.zh-CN.svg" alt="续写：(a) 中文下一个词 (b) 英文下一个词 (c) 中文补全打了一半的词；只用 n-gram、zh-lite-next-preview、n-gram+zh-lite-next-preview 与老师 Qwen3-1.7B-Base 的第一个就对和前 5 个里有的比例" width="100%">
 
 ## 离线翻译模型
 

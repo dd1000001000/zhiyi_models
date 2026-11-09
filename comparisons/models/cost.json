@@ -103,5 +103,10 @@
   "file_mb": 25.82001,
   "params": 23664128,
   "macs_per_row": 738290988.161725
+ },
+ "zhiyi-zh-lite-next-preview": {
+  "file_mb": 51.445866,
+  "params": 49289984,
+  "macs_per_row": 738290988.161725
  }
 }
