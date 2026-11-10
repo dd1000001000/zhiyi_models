@@ -1,6 +1,6 @@
 """Zhiyi word-choice models (the int8 graph laya.int8g.onnx of a release zip, with its tokenizer.json and
-unified_vocab.json) as the input method feeds them: the whole page of candidates in one pass, the choice head's
-logit per candidate.
+unified_vocab.json; zhen-mini-next-preview: the single 4-bit file laya.mini.w4.onnx, context then key mode) as the
+input method feeds them: the whole page of candidates, the choice head's logit per candidate.
 
 Sequence (choice_format "ctx-first"):
   <bos> context(last 128 tokens) <eos> <mask> per syllable slot <eos> <mask> cand1(16 tokens) <mask> cand2 ... <eos>
@@ -57,10 +57,16 @@ def units_for(cand, code):
     return None
 
 
+GRAPHS = ("laya.int8g.onnx", "laya.mini.w4.onnx")  # a release zip's word-choice graph, the first one present
+
+
 class Zhiyi:
-    def __init__(self, folder, dml=0, graph="laya.int8g.onnx", context_chars=None):
-        """folder: an unpacked int8 release zip. dml: DirectML device id (None = CPU). context_chars: cut the context
-        to its last N characters first (a check against models that see less)."""
+    def __init__(self, folder, dml=0, graph=None, context_chars=None):
+        """folder: an unpacked int8 release zip (or zhen-mini-next-preview's w4 zip: the single 4-bit file, run on the
+        CPU in its two word-choice passes, see score_single). dml: DirectML device id (None = CPU). context_chars: cut
+        the context to its last N characters first (a check against models that see less)."""
+        graph = graph or next(g for g in GRAPHS if os.path.exists(os.path.join(folder, g)))
+        self.graph_path = os.path.join(folder, graph)
         self.context_chars = context_chars
         import onnxruntime as ort
         from tokenizers import Tokenizer
@@ -80,7 +86,13 @@ class Zhiyi:
         if dml is not None:
             so.enable_mem_pattern = False
             providers = [("DmlExecutionProvider", {"device_id": dml}), "CPUExecutionProvider"]
-        self.s = ort.InferenceSession(os.path.join(folder, graph), so, providers=providers)
+        so.log_severity_level = 3  # the single file's inputs a mode leaves out are overridable defaults (a warning each)
+        probe = ort.InferenceSession(self.graph_path, so, providers=["CPUExecutionProvider"])
+        # is_step has a default, so ONNX Runtime lists it among the overridable initializers, not the inputs
+        self.single = "is_step" in {i.name for i in probe.get_inputs() + probe.get_overridable_initializers()}
+        if self.single:  # weight-only 4-bit operators: CPU
+            providers = ["CPUExecutionProvider"]
+        self.s = ort.InferenceSession(self.graph_path, so, providers=providers)
         self.inputs = {i.name for i in self.s.get_inputs()}
         self._cache = {}
         # composition: the input method's pinyin masks (the Simplified characters' readings) over char_logits' columns
@@ -128,6 +140,8 @@ class Zhiyi:
             code = "".join(c for c in r["code"] if "a" <= c <= "z")
             context = r["context"][-self.context_chars:] if self.context_chars else r["context"]
             items.append(self.sequence(context, r["candidates"], units_for(r["candidates"][0], code) or []))
+        if self.single:
+            return [self.score_single(*x)[:len(r["candidates"])] for x, r in zip(items, rows)]
         order = sorted(range(len(rows)), key=lambda i: len(rows[i]["context"]) + 4 * len(rows[i]["candidates"]))
         out = [None] * len(rows)
         for s in range(0, len(order), bs):
@@ -153,6 +167,18 @@ class Zhiyi:
             for b, i in enumerate(idx):
                 out[i] = lg[b, :len(rows[i]["candidates"])].astype(float).tolist()
         return out
+
+    def score_single(self, ids, unit_ids, markers):
+        """The single file (is_step false): the leading block (up to the first <eos>) in context mode, its keys and
+        values (present_0..3) as the past of the rest in key mode, as an input method caches the context."""
+        n = ids.index(self.eos) + 1
+        x, u = np.array([ids], np.int64), np.array([unit_ids], np.int64)
+        c = self.s.run(["present_0", "present_1", "present_2", "present_3"], {"input_ids": x[:, :n], "unit_ids": u[:, :n]})
+        feed = dict(zip(("past_enc_k", "past_enc_v", "past_choice_k", "past_choice_v"), c))
+        feed["past_mask"] = np.ones((1, n), bool)
+        lg = self.s.run(["logits"], {"input_ids": x[:, n:], "unit_ids": u[:, n:], **feed,
+                                     "marker_pos": np.array([[m - n for m in markers]], np.int64)})[0]
+        return lg[0].astype(float).tolist()
 
     def allowed(self, kind, s):
         """The characters a unit may spell: f:zhong those read zhong, p:zh those with a reading starting zh."""

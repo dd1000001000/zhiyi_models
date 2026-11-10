@@ -14,6 +14,7 @@ neutral word-choice test sets [v2](benchmarks/neutral-v2), [v3](benchmarks/neutr
 | Model | What it does | In Zhiyi IME | Download |
 | --- | --- | --- | --- |
 | zh-lite-next-preview | zh-lite-preview with English word choice, plus Simplified Chinese and English next-word prediction and Chinese completion (preview); word choice 8 layers of width 256, a 4-layer next-word decoder | Not yet | [model-zh-lite-next-preview](https://github.com/dd1000001000/zhiyi_models/releases/tag/model-zh-lite-next-preview) |
+| zhen-mini-next-preview | zh-lite-next-preview made small: Chinese and English word choice and next word in about 10 MB (32,000 tokens, a 2-layer next-word decoder, 4-bit weights; one 12.2 MB ONNX file or a 10.1 MB safetensors, preview) | Not yet | [model-zhen-mini-next-preview](https://github.com/dd1000001000/zhiyi_models/releases/tag/model-zhen-mini-next-preview) |
 | zh-lite-preview | Simplified and Traditional Chinese word choice (preview), 8 layers of width 256, a compact input sequence; about a third of Flash's size and compute | Not yet (the engine does not build its input) | [model-zh-lite-preview](https://github.com/dd1000001000/zhiyi_models/releases/tag/model-zh-lite-preview) |
 | ML-pumpkin-1103 | Multilingual word choice and composition, 12 layers, caches the context; better without context, with a one-graph KV-cache and a fused-operator version | Not yet | [model-ml-pumpkin-1103](https://github.com/dd1000001000/zhiyi_models/releases/tag/model-ml-pumpkin-1103) |
 | ML-Flash-1103 | Multilingual word choice and composition, 8 layers, caches the context; better without context, with a one-graph KV-cache and a fused-operator version | Default from 1.6.4 | [model-ml-flash-1103](https://github.com/dd1000001000/zhiyi_models/releases/tag/model-ml-flash-1103) |
@@ -56,7 +57,9 @@ The multilingual preview [Zhiyi 1.4V2-ML-Preview-1024](https://github.com/dd1000
 
 [Zhiyi zh-lite-next-preview](https://github.com/dd1000001000/zhiyi_models/releases/tag/model-zh-lite-next-preview) adds English candidates and a next-word decoder to zh-lite-preview: after a commit it guesses the next word (Simplified Chinese words in Chinese mode, English words in English mode), and in Chinese it completes a word whose first characters are typed. The decoder writes the model's own tokens, no word list; the teacher is Qwen3-1.7B-Base (only its words were used). Not in the IME yet.
 
-<img src="media/next_word.en-US.svg" alt="Next word: (a) Chinese next word (b) English next word (c) completing a half-typed Chinese word; n-gram alone, zh-lite-next-preview, n-gram+zh-lite-next-preview and the teacher Qwen3-1.7B-Base, first right and among the 5" width="100%">
+[Zhiyi zhen-mini-next-preview](https://github.com/dd1000001000/zhiyi_models/releases/tag/model-zhen-mini-next-preview) is its small version, for little room such as phones: a 32,000-token vocabulary, a 2-layer decoder of width 256 and 4-bit weights, word choice and next word in about 10 MB together. Word choice is within about a point of zh-lite-next-preview, the next word 1 to 3 points lower, completion about 5. Its tokenizer is not BPE, which the current engine cannot read, so it is not in the word-choice chart above (the model alone is in [comparisons/models](comparisons/models/)).
+
+<img src="media/next_word.en-US.svg" alt="Next word: (a) Chinese next word (b) English next word (c) completing a half-typed Chinese word; n-gram alone, zh-lite-next-preview, n-gram+zh-lite-next-preview, zhen-mini-next-preview, n-gram+zhen-mini-next-preview and the teacher Qwen3-1.7B-Base, first right and among the 5" width="100%">
 
 ## Offline translation model
 

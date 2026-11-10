@@ -1,6 +1,6 @@
 """Size, parameters and theoretical compute of each model, for the chart (relative to Zhiyi ML-Flash-1031 = 1.0).
 
-- File size: the model file as released (Zhiyi: laya.int8g.onnx; MetasequoiaIME: <name>.ort; Youmo: the
+- File size: the model file as released (Zhiyi: laya.int8g.onnx, zhen-mini-next-preview laya.mini.w4.onnx; MetasequoiaIME: <name>.ort; Youmo: the
   safetensors; ChaoInput: lmt.bin (its dict.db not counted); PinyinGPT / GPT2-zh-21k: the released weights;
   Qwen: the safetensors, vision tower included).
 - Parameters: the tensors in that file (Zhiyi: the ONNX initializers, scalars left out; the ones read from configs
@@ -50,6 +50,36 @@ def zhiyi_shape(graph):
     return d, ff, rows[ff], rows[4 * d]
 
 
+def single_shape_params(graph):
+    """zhen-mini-next-preview's single 4-bit file: width, encoder feed-forward, depth and head layers from its
+    MatMulNBits nodes (K x N) in the word-choice branch, and its weights: K * N per MatMulNBits (the token table, read
+    by the decoder's read-out and unpacked by both embeddings, once), the 4-bit unit table, the other float tensors;
+    not the inputs' small defaults, the scales or the packed bytes."""
+    import onnx
+    from onnx import helper, numpy_helper
+    m = onnx.load(graph, load_external_data=False)
+    ins = {i.name for i in m.graph.input}
+    if_node = next(nd for nd in m.graph.node if nd.op_type == "If")
+    br = {a.name: a.g for a in if_node.attribute}
+    mm = lambda g: [{a.name: helper.get_attribute_value(a) for a in nd.attribute} | {"in": list(nd.input)}  # noqa: E731
+                    for nd in g.node if nd.op_type == "MatMulNBits"]
+    choice = mm(br["else_branch"])
+    tab = next(t for t in m.graph.initializer if t.name == "zhiyi_tok_q4")
+    d = tab.dims[1] * 32
+    ffs = [x["K"] for x in choice if x["N"] == d and x["K"] not in (d, 4 * d)]
+    depth, head_n = len(ffs), sum(1 for x in choice if x["N"] == d and x["K"] == 4 * d)
+    packed = {i for x in choice + mm(br["then_branch"]) for i in x["in"][1:]}
+    params = tab.dims[0] * d + sum(x["K"] * x["N"] for x in choice + mm(br["then_branch"]) if x["in"][1] != "zhiyi_tok_q4")
+    for t in m.graph.initializer:
+        if t.name in ins or t.name in packed or t.name.endswith("_scales") or t.name.startswith("zhiyi_tok"):
+            continue
+        n = 1
+        for x in t.dims:
+            n *= x
+        params += n if n > 1 else 0
+    return (d, ffs[0], depth, head_n), params
+
+
 def causal(ctx, cands, W, d, layers, out):
     """ctx tokens once, then per candidate (new tokens, characters scored): linear + attention + output."""
     macs = W * ctx + layers * 2 * d * sum(range(1, ctx + 1))
@@ -97,8 +127,11 @@ def main():
         import onnx
         from zhiyi import Zhiyi, units_for
         z = Zhiyi(folder, None)
-        g = os.path.join(folder, "laya.int8g.onnx")
-        d, FF, depth, head_n = zhiyi_shape(g)
+        g = z.graph_path
+        if z.single:  # zhen-mini-next-preview: the whole model (word choice and the next-word decoder) in one file
+            (d, FF, depth, head_n), n_params = single_shape_params(g)
+        else:
+            (d, FF, depth, head_n), n_params = zhiyi_shape(g), onnx_params(g)
         kinds = LAYER_TYPES[depth]
         enc = 3 * d * d + d * d + d * 2 * FF + FF * d  # Wqkv, Wo, Wi (gated), Wo
         head = head_n * (3 * d * d + d * d + 2 * d * 4 * d)  # the choice head's layers, attention + feed-forward 4d
@@ -108,7 +141,7 @@ def main():
             L = len(z.sequence(r["context"], r["candidates"], units_for(r["candidates"][0], code) or [])[0])
             att = sum(2 * L * (L if k == "F" else min(L, WINDOW + 1)) * d for k in kinds)
             per.append(L * (depth * enc + head) + att + head_n * 2 * L * L * d)
-        add(name, os.path.getsize(g), onnx_params(g), per)
+        add(name, os.path.getsize(g), n_params, per)
 
     if a.metasequoia:
         for size in ("8x448", "6x256"):

@@ -1,6 +1,6 @@
 # 选词 / 组句模型对比：知意、PinyinGPT、Rime 插件、LIME、水杉、青简、幽默、知字、吵吵
 
-各输入法的神经排序模型在[中立选词测试集 v2](../../benchmarks/neutral-v2/)、[v3](../../benchmarks/neutral-v3/)（网页）、[v4](../../benchmarks/neutral-v4/)（聊天）和 [v5](../../benchmarks/neutral-v5/)（困难集）上的首选准确率，只用模型，不用任何引擎和 n-gram；另附一项整句组句测试。Qwen3.5-2B-Base 作为通用语言模型的参考。测试日期：2026-11-03（知意 zh-lite-preview 为 2026-11-04，zh-lite-next-preview 为 2026-11-09）。
+各输入法的神经排序模型在[中立选词测试集 v2](../../benchmarks/neutral-v2/)、[v3](../../benchmarks/neutral-v3/)（网页）、[v4](../../benchmarks/neutral-v4/)（聊天）和 [v5](../../benchmarks/neutral-v5/)（困难集）上的首选准确率，只用模型，不用任何引擎和 n-gram；另附一项整句组句测试。Qwen3.5-2B-Base 作为通用语言模型的参考。测试日期：2026-11-03（知意 zh-lite-preview 为 2026-11-04，zh-lite-next-preview 为 2026-11-09，zhen-mini-next-preview 为 2026-11-10）。
 
 > **说明**：测试结果仅供参考。除知意和青简（调用青简自己的代码）外，各家模型都是按其公开的文件格式和源码自己实现读取和打分，没有运行各家的输入法，难免与原作者的实际用法有出入；测试集、打分方式的偏差见下文。如果发现任何问题（读取或打分有误、版本不对、对哪一家不公平等），请到 [Issues](https://github.com/dd1000001000/zhiyi_models/issues) 提出，我们会核对并更正。
 >
@@ -21,6 +21,7 @@
 | 知意 ML-pumpkin-1103 | Release [`model-ml-pumpkin-1103`](https://github.com/dd1000001000/zhiyi_models/releases/tag/model-ml-pumpkin-1103) 的 `laya-ml-pumpkin-1103-int8g.zip` 里的 `laya.int8g.onnx`，12 层（测试时尚未发布，后于 2026-11-03 发布） | 83 MB | `5ca51a94…eb08` | 本仓库 | Apache-2.0 |
 | 知意 ML-Flash-1103 | Release [`model-ml-flash-1103`](https://github.com/dd1000001000/zhiyi_models/releases/tag/model-ml-flash-1103) 的 `laya-ml-flash-1103-int8g.zip` 里的 `laya.int8g.onnx`，8 层（同上） | 75 MB | `6396bffe…d7b7` | 本仓库 | Apache-2.0 |
 | 知意 zh-lite-next-preview | Release [`model-zh-lite-next-preview`](https://github.com/dd1000001000/zhiyi_models/releases/tag/model-zh-lite-next-preview) 的 `laya-zh-lite-next-preview-int8g.zip` 里的 `laya.int8g.onnx`，zh-lite-preview 加英文候选并和续写解码器一起训练，8 层、宽 256，紧凑输入格式（2026-11-09 发布） | 51 MB | `29f87302…36e2` | 本仓库 | Apache-2.0 |
+| 知意 zhen-mini-next-preview | Release [`model-zhen-mini-next-preview`](https://github.com/dd1000001000/zhiyi_models/releases/tag/model-zhen-mini-next-preview) 的 `laya-zhen-mini-next-preview-w4.zip` 里的 `laya.mini.w4.onnx`：zh-lite-next-preview 的缩小版，3.2 万词元、续写解码器 2 层、4 位权重，选词和续写在同一个文件里（这里只用选词，先算上文、再算按键）（2026-11-10 发布） | 12 MB | `54b26f1d…7ffc` | 本仓库 | Apache-2.0 |
 | 知意 zh-lite-preview | Release [`model-zh-lite-preview`](https://github.com/dd1000001000/zhiyi_models/releases/tag/model-zh-lite-preview) 的 `laya-zh-lite-preview-int8g.zip` 里的 `laya.int8g.onnx`，8 层、宽 256，只选简体、繁体中文候选，紧凑输入格式（2026-11-04 发布） | 26 MB | `64f02409…8a96` | 本仓库 | Apache-2.0 |
 | PinyinGPT-Concat | Hugging Face `aihijo/transformers4ime-pinyingpt-concat` 的 `pytorch_model.bin`：GPT-2 12 层 × 768，词表 21,128 + 443 个拼音 token | 489 MB | `1c5ebb9e…74bb` | Tan 等，ACL 2022（腾讯 AI Lab）；代码 [VisualJoyce/Transformers4IME](https://github.com/VisualJoyce/Transformers4IME) `8f1573e` | CC BY-NC-SA 4.0 |
 | GPT2-zh-21k | Hugging Face `aihijo/gpt2-zh-21k` 的 `model.safetensors`：同一论文里冻结使用的中文 GPT | 421 MB | `645284b6…78c6` | 同上 | CC BY-NC-SA 4.0 |
@@ -77,7 +78,7 @@
 - 水杉、幽默在各自的输入法里还要加上解码器 / n-gram 的分数，这里只比模型本身，不能代表它们输入法的整体表现。
 - **知字**：它在输入法里默认关闭（实验开关），打开后只在同读音、同长度的一组候选里重排，取「模型分 − 2 × 词库原排名」最高的；这里只比模型本身。它的输入法只记同一个程序里最近上屏的 32 个字作为上文，这里给的是测试集的上文（最后一行，最多 32 字）。
 - PinyinGPT、GPT2-zh-21k 为 CC BY-NC-SA 4.0，CNMBert 为 AGPL-3.0，这里只做评测，不分发它们的权重。
-- v3 是 2026 年 10 月的网页，晚于各家的训练数据；知意 1103 两个模型、zh-lite-preview 和 zh-lite-next-preview 训练时没有用到 v2、v3、v1 的任何内容。
+- v3 是 2026 年 10 月的网页，晚于各家的训练数据；知意 1103 两个模型、zh-lite-preview、zh-lite-next-preview 和 zhen-mini-next-preview 训练时没有用到 v2、v3、v1 的任何内容。
 
 ## 结果：选词（首选准确率 %）
 
@@ -87,6 +88,7 @@
 | 知意 ML-pumpkin-1103 | 93.5 | 93.8 | 95.3 | 83.9 | 92.2 | 93.5 | 95.1 | 94.7 |
 | 知意 ML-Flash-1103 | 93.3 | 93.3 | 95.0 | 82.4 | 91.2 | 92.9 | 93.5 | 94.9 |
 | 知意 zh-lite-next-preview | 93.0 | 93.0 | 94.7 | 84.5 | 90.0 | 92.8 | 93.6 | 93.7 |
+| 知意 zhen-mini-next-preview | 93.5 | 93.0 | 94.4 | 85.0 | 90.6 | 92.8 | 93.4 | 93.6 |
 | 知意 zh-lite-preview | 92.6 | 92.8 | 94.4 | 84.2 | 90.3 | 92.4 | 93.5 | 94.2 |
 | 知意 ML-pumpkin-1026 | 93.1 | 93.1 | 94.8 | 82.5 | 90.7 | 92.7 | 94.2 | 94.1 |
 | 知意 ML-Flash-1031 | 93.2 | 93.1 | 94.8 | 82.5 | 91.1 | 92.8 | 93.3 | 94.6 |
@@ -125,7 +127,8 @@ v4 是聊天（LCCC 对话，上文是前面几句话，79% 的计分行是单�
 | 知意 ML-pumpkin-1103 | 90.9 | 84.8 | 74.5 | 89.5 | 72.5 | 62.7 | 71.7 | 85.1 | 61.6 | 66.4 |
 | 知意 ML-Flash-1103 | 90.9 | 84.8 | 75.9 | 89.3 | 71.2 | 62.2 | 70.3 | 83.1 | 61.2 | 65.4 |
 | 知意 zh-lite-next-preview | 90.8 | 85.0 | 75.3 | 88.5 | 70.2 | 60.9 | 69.3 | 82.3 | 60.5 | 63.6 |
-| 知意 zh-lite-preview | **91.0** | 85.0 | 75.8 | 88.0 | 70.0 | 61.2 | 68.6 | 82.1 | 60.6 | 64.0 |
+| 知意 zhen-mini-next-preview | **91.1** | 85.3 | 76.6 | 89.3 | 70.4 | 60.6 | 69.6 | 82.9 | 61.2 | 64.7 |
+| 知意 zh-lite-preview | 91.0 | 85.0 | 75.8 | 88.0 | 70.0 | 61.2 | 68.6 | 82.1 | 60.6 | 64.0 |
 | 知意 ML-pumpkin-1026 | 90.7 | **87.1** | **77.0** | 89.0 | 69.3 | 55.5 | 70.3 | 84.5 | 54.5 | 62.6 |
 | 知意 ML-Flash-1031 | 90.8 | 86.8 | 76.2 | 89.5 | 68.2 | 54.3 | 69.5 | 83.0 | 56.7 | 60.9 |
 | PinyinGPT-Concat（腾讯） | 89.0 | 77.6 | 73.2 | 88.1 | 73.9 | 59.2 | 76.3 | 88.2 | 65.1 | 67.7 |
@@ -157,6 +160,7 @@ v4 是聊天（LCCC 对话，上文是前面几句话，79% 的计分行是单�
 | 知意 ML-pumpkin-1103 | 83 MB（1.10） | 80.8M（1.10） | 3.6 G（1.40） |
 | 知意 ML-Flash-1103 | 75 MB（1.00） | 73.2M（1.00） | 2.6 G（1.00） |
 | 知意 zh-lite-next-preview | 51 MB（0.68） | 49.3M（0.67） | 738 M（0.29） |
+| 知意 zhen-mini-next-preview | 12 MB（0.16） | 17.6M（0.24） | 739 M（0.29） |
 | 知意 zh-lite-preview | 26 MB（0.34） | 23.7M（0.32） | 738 M（0.29） |
 | 知意 ML-pumpkin-1026 | 92 MB（1.22） | 84.4M（1.15） | 3.6 G（1.40） |
 | 知意 ML-Flash-1031 | 75 MB（1.00） | 73.2M（1.00） | 2.6 G（1.00） |
@@ -177,8 +181,8 @@ v4 是聊天（LCCC 对话，上文是前面几句话，79% 的计分行是单�
 | CNMBert（只测首字母行） | 523 MB（6.93） | 130.6M（1.79） | 172.6 G（67.03） |
 | Qwen3.5-2B-Base（参考：通用语言模型） | 4.55 GB（60.32） | 1.88B（25.72） | 124.0 G（48.15） |
 
-- 文件大小：各家实际用的模型文件。知意为 int8 ONNX，水杉 rerank-v1 为 `.ort`，水杉 model-v1 和幽默为 int8 safetensors，青简为 f16 的 `.qjm`，知字为 fp32 ONNX（Windows 版用它，macOS 用 Core ML fp16），吵吵为 fp32 的 `lmt.bin`（不含词典 `dict.db`），PinyinGPT / GPT2 / CNMBert 为 fp32 权重，Rime-AI-IME 为它发布的 Q8_0 GGUF，rime-llm-reranker 为 bf16（它默认的 MLX bf16），LIME 为它跑的 IQ4_XS GGUF，Qwen 2B 为 bf16 且含视觉部分。
-- 总参数量：文件里的张量个数。知意按 ONNX 的权重数，其中约 4,875 万是词嵌入（zh-lite-preview 约 1,632 万，zh-lite-next-preview 约 4,195 万：多留了英文词元）；水杉 rerank-v1 的 `.ort` 无法直接读出张量，按其 `model.json` 的结构算；Qwen 系列只算语言模型部分，绑定的输出层不重复计；知字的 ONNX 里绑定的输出层多存了一份，同样只计一次。
+- 文件大小：各家实际用的模型文件。知意为 int8 ONNX（zhen-mini-next-preview 为 4 位 ONNX，含续写），水杉 rerank-v1 为 `.ort`，水杉 model-v1 和幽默为 int8 safetensors，青简为 f16 的 `.qjm`，知字为 fp32 ONNX（Windows 版用它，macOS 用 Core ML fp16），吵吵为 fp32 的 `lmt.bin`（不含词典 `dict.db`），PinyinGPT / GPT2 / CNMBert 为 fp32 权重，Rime-AI-IME 为它发布的 Q8_0 GGUF，rime-llm-reranker 为 bf16（它默认的 MLX bf16），LIME 为它跑的 IQ4_XS GGUF，Qwen 2B 为 bf16 且含视觉部分。
+- 总参数量：文件里的张量个数。知意按 ONNX 的权重数，其中约 4,875 万是词嵌入（zh-lite-preview 约 1,632 万，zh-lite-next-preview 约 4,195 万：多留了英文词元；zhen-mini-next-preview 约 819 万，3.2 万词元）；zhen-mini-next-preview 的文件和参数量包括续写解码器（约 234 万），4 位矩阵按 K × N 计数；水杉 rerank-v1 的 `.ort` 无法直接读出张量，按其 `model.json` 的结构算；Qwen 系列只算语言模型部分，绑定的输出层不重复计；知字的 ONNX 里绑定的输出层多存了一份，同样只计一次。
 - 理论计算量：从头给一行的整串候选打分的乘加次数，按 v3 计分行平均（`cost.py`）。上文只算一次（因果模型的上文 K/V 各候选共用），各词元过线性层，注意力按各词元看到的长度算，逐字算整个词表 softmax 的模型另加输出层（水杉 6x256 是自归一化的，只算候选字那一项）。两个 Rime 插件为提示词（含候选列表）算一次、再加各候选的回答；CNMBert 每个候选每个字一次完整前向（只算首字母行）。知意为整页一次前向（编码器 + 选词头，不算组句头）；在输入法里知意 Flash 的上文可以缓存，这里没有扣除。
 
 ## 结果：组句（P@1 / P@5 %）
@@ -223,6 +227,8 @@ python cost.py --v3 neutral-v3.jsonl --zhiyi zhiyi-flash-1031=laya-ml-flash-1031
 zh-lite-preview：`python run.py --v2 neutral-v2.jsonl --v3 neutral-v3.jsonl --v4 neutral-v4.jsonl --v5 neutral-v5.jsonl --zhiyi zhiyi-zh-lite-preview=laya-zh-lite-preview-int8g`（它的 zip 里多一个候选用的 `tokenizer.candidates.json`），`cost.py` 同样加 `--zhiyi zhiyi-zh-lite-preview=…`。
 
 zh-lite-next-preview：同上，`--zhiyi zhiyi-zh-lite-next-preview=laya-zh-lite-next-preview-int8g`（`run.py` 和 `cost.py`）。
+
+zhen-mini-next-preview：同上，`--zhiyi zhiyi-zhen-mini-next-preview=laya-zhen-mini-next-preview-w4 --cpu`（`run.py` 和 `cost.py`；`zhiyi.py` 认出单文件后在 CPU 上按上文、按键两步打分）。
 
 v4、v5 的打分：上面三条 `run.py` 命令都加上 `--v4 neutral-v4.jsonl --v5 neutral-v5.jsonl`（已有的 v2、v3 分数文件会直接沿用），另加 `--zhiyi zhiyi-pumpkin-1103=… --zhiyi zhiyi-flash-1103=… --zhizi shunshou-zhizi-30m`。
 

@@ -11,6 +11,7 @@ n-gram，以及学习模式里翻译候选的离线翻译模型。模型文件�
 | 模型 | 内容 | 知意输入法 | 下载 |
 | --- | --- | --- | --- |
 | zh-lite-next-preview | zh-lite-preview 加英文选词，再加简体中文、英文续写（猜下一个词）和中文补全（预览）；选词 8 层、宽 256，续写解码器 4 层 | 未接入 | [model-zh-lite-next-preview](https://github.com/dd1000001000/zhiyi_models/releases/tag/model-zh-lite-next-preview) |
+| zhen-mini-next-preview | zh-lite-next-preview 的缩小版：中英文选词和续写共约 10 MB（3.2 万词元、续写解码器 2 层、4 位权重，ONNX 单文件 12.2 MB 或 safetensors 10.1 MB，预览） | 未接入 | [model-zhen-mini-next-preview](https://github.com/dd1000001000/zhiyi_models/releases/tag/model-zhen-mini-next-preview) |
 | zh-lite-preview | 简体、繁体中文选词（预览），8 层、宽 256，紧凑输入格式；大小和计算量约为 Flash 的三分之一 | 未接入（引擎还不支持它的输入格式） | [model-zh-lite-preview](https://github.com/dd1000001000/zhiyi_models/releases/tag/model-zh-lite-preview) |
 | ML-pumpkin-1103 | 多语言选词和组句，12 层，可以缓存上文；没有上文时更准，另附 KV cache 单图和算子融合版 | 未接入 | [model-ml-pumpkin-1103](https://github.com/dd1000001000/zhiyi_models/releases/tag/model-ml-pumpkin-1103) |
 | ML-Flash-1103 | 多语言选词和组句，8 层，可以缓存上文；没有上文时更准，另附 KV cache 单图和算子融合版 | 1.6.4 起的默认模型 | [model-ml-flash-1103](https://github.com/dd1000001000/zhiyi_models/releases/tag/model-ml-flash-1103) |
@@ -53,7 +54,9 @@ ng1017+1.4V2-Long-L18 在 1.4V2-Long-L18 上加了一个词语 n-gram（三元�
 
 [知意 zh-lite-next-preview](https://github.com/dd1000001000/zhiyi_models/releases/tag/model-zh-lite-next-preview) 在 zh-lite-preview 上加了英文候选和一个续写解码器：上屏后猜下一个词（中文模式出简体词，英文模式出英文词），中文还能补全打了前几个字的词。解码器的输出就是模型自己的词元，不靠词表；老师是 Qwen3-1.7B-Base（只用了它给的词）。未接入输入法。
 
-<img src="media/next_word.zh-CN.svg" alt="续写：(a) 中文下一个词 (b) 英文下一个词 (c) 中文补全打了一半的词；只用 n-gram、zh-lite-next-preview、n-gram+zh-lite-next-preview 与老师 Qwen3-1.7B-Base 的第一个就对和前 5 个里有的比例" width="100%">
+[知意 zhen-mini-next-preview](https://github.com/dd1000001000/zhiyi_models/releases/tag/model-zhen-mini-next-preview) 是它的缩小版，给手机这类空间小的地方用：词表缩到 3.2 万个词元，续写解码器减到 2 层、宽 256，权重 4 位，选词和续写一共约 10 MB。选词和 zh-lite-next-preview 相差在 1 分左右，续写低 1 到 3 分，补全低约 5 分。它的分词器不是 BPE，现在的引擎读不了，所以上面的选词图里没有它（只用模型的成绩见 [comparisons/models](comparisons/models/)）。
+
+<img src="media/next_word.zh-CN.svg" alt="续写：(a) 中文下一个词 (b) 英文下一个词 (c) 中文补全打了一半的词；只用 n-gram、zh-lite-next-preview、n-gram+zh-lite-next-preview、zhen-mini-next-preview、n-gram+zhen-mini-next-preview 与老师 Qwen3-1.7B-Base 的第一个就对和前 5 个里有的比例" width="100%">
 
 ## 离线翻译模型
 
