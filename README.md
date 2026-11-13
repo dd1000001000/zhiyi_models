@@ -22,7 +22,8 @@ n-gram，以及学习模式里翻译候选的离线翻译模型。模型文件�
 | 1.4V2-Long-L18 | 中英文选词和组句，18 层 | 1.5.9–1.5.11 | [model-zhen-long-l18](https://github.com/dd1000001000/zhiyi_models/releases/tag/model-zhen-long-l18) |
 | ng1017 | 简体中文词语 n-gram | 1.5.10 起 | [ngram-zh-1017](https://github.com/dd1000001000/zhiyi_models/releases/tag/ngram-zh-1017) |
 | ngram-ml-1024 | 繁体中文、日文词语 n-gram | 不用 | [ngram-ml-1024](https://github.com/dd1000001000/zhiyi_models/releases/tag/ngram-ml-1024) |
-| 离线翻译 v4-1026 | 9 种语言的候选翻译，带词性头 | 1.5.17 起 | [translator-v4-1026](https://github.com/dd1000001000/zhiyi_models/releases/tag/translator-v4-1026) |
+| 离线翻译 v4-1113-RL | 9 种语言的候选翻译，带词性头 | 2026-11-13 起 | [translator-v4-1113-rl](https://github.com/dd1000001000/zhiyi_models/releases/tag/translator-v4-1113-rl) |
+| 离线翻译 v4-1026 | 9 种语言的候选翻译，带词性头 | 1.5.17 至 2026-11-13 | [translator-v4-1026](https://github.com/dd1000001000/zhiyi_models/releases/tag/translator-v4-1026) |
 | 离线翻译 v4 | 9 种语言的候选翻译 | 2026-10-24 至 10-26 | [translator-v4](https://github.com/dd1000001000/zhiyi_models/releases/tag/translator-v4) |
 | 离线翻译 v3 | 9 种语言的候选翻译 | 2026-10-24 前 | [translator-v3](https://github.com/dd1000001000/zhiyi_models/releases/tag/translator-v3) |
 | 离线翻译 v2 | 第 2 版，留作参考 | 不再使用 | [translator-v2](https://github.com/dd1000001000/zhiyi_models/releases/tag/translator-v2) |
@@ -60,13 +61,15 @@ ng1017+1.4V2-Long-L18 在 1.4V2-Long-L18 上加了一个词语 n-gram（三元�
 
 ## 离线翻译模型
 
-学习模式里语言包查不到的候选由本机的翻译模型翻译，现在用的是知意 v4-1026（1.5.17 起，之前装了旧版本的在设置“学习”页更新）。v3 从 [LMT-60-0.6B](https://huggingface.co/NiuTrans/LMT-60-0.6B) 的 28 层中去掉 8 层，用腾讯 [Hy-MT2-7B](https://huggingface.co/tencent/Hy-MT2-7B) 对约 275 万条输入法候选和句子（中、英、日、韩、法、德、西、俄、越 9 种语言，带光标前的上文）的译文蒸馏而来。v4 在 [Release translator-v4](https://github.com/dd1000001000/zhiyi_models/releases/tag/translator-v4) 发布，结构和 v3 相同，训练数据增至约 360 万条，新增针对 v3 弱项的约 88 万条（要靠上文选词义的条目由 [Hy-MT2-30B-A3B](https://huggingface.co/tencent/Hy-MT2-30B-A3B) 翻译）和约 1,100 个多义词，并学一个 28 层老师的输出概率。在三个开源测试集上，v4 的 COMET-22 比 v3 高约 2.4–2.5 分（FLORES-200 81.5 → 84.0，WMT24++ 78.1 → 80.5，NTREX-128 79.2 → 81.7），三个都超过 LMT-60 原版（82.2、76.7、81.4）；输出不是目标语言的比例也更低（WMT24++ 0.62% → 0.35%，另外两个都在 0.1% 以下）。两者都是下载约 0.32 GB，显卡上一页约 70 毫秒、CPU 上一页约 0.28 秒，显存和内存都约 1.1 GB。
+学习模式里语言包查不到的候选由本机的翻译模型翻译，现在用的是知意 v4-1113-RL（2026-11-13 起，之前装了旧版本的在设置“学习”页更新）。v3 从 [LMT-60-0.6B](https://huggingface.co/NiuTrans/LMT-60-0.6B) 的 28 层中去掉 8 层，用腾讯 [Hy-MT2-7B](https://huggingface.co/tencent/Hy-MT2-7B) 对约 275 万条输入法候选和句子（中、英、日、韩、法、德、西、俄、越 9 种语言，带光标前的上文）的译文蒸馏而来。v4 在 [Release translator-v4](https://github.com/dd1000001000/zhiyi_models/releases/tag/translator-v4) 发布，结构和 v3 相同，训练数据增至约 360 万条，新增针对 v3 弱项的约 88 万条（要靠上文选词义的条目由 [Hy-MT2-30B-A3B](https://huggingface.co/tencent/Hy-MT2-30B-A3B) 翻译）和约 1,100 个多义词，并学一个 28 层老师的输出概率。在三个开源测试集上，v4 的 COMET-22 比 v3 高约 2.4–2.5 分（FLORES-200 81.5 → 84.0，WMT24++ 78.1 → 80.5，NTREX-128 79.2 → 81.7），三个都超过 LMT-60 原版（82.2、76.7、81.4）；输出不是目标语言的比例也更低（WMT24++ 0.62% → 0.35%，另外两个都在 0.1% 以下）。两者都是下载约 0.32 GB，显卡上一页约 70 毫秒、CPU 上一页约 0.28 秒，显存和内存都约 1.1 GB。
+
+[知意 v4-1113-RL](https://github.com/dd1000001000/zhiyi_models/releases/tag/translator-v4-1113-rl) 是 v4-1026 之后的版本，结构、下载大小和速度都和它一样，2026-11-13 起输入法使用它（翻译清单第 7 版）。它从 v4-1026 出发，先多学了 320 万条新译文（其中约 100 万条补的是 v4-1026 最弱的方向：日、韩、法、德、西、俄、越语译成英文和中文，以及译成法、德、西、俄语的句子），再和 v4-1026 按 0.7 / 0.3 平均权重，最后做一轮强化学习，奖励只检查能核对的东西（数字和专名有没有保留、是不是目标语言、多义词选没选对），不用任何打分模型。词性头为它重新训练过。
 
 <img src="media/translator.zh-CN.svg" alt="离线翻译模型对比：(a)(b)(c) FLORES-200、WMT24++、NTREX-128 的 COMET-22 (d)(e)(f) 不是目标语言的比例 (g) 显卡耗时 (h) 显存 (i) 下载大小 (j) CPU 耗时 (k) 内存" width="100%">
 
 [知意 v4-1026](https://github.com/dd1000001000/zhiyi_models/releases/tag/translator-v4-1026) 另带一个 10 MB 的词性头：读翻译模型自己的隐藏状态，按候选前面的上文判断候选的词性，翻成哪种语言都能用，不需要第二个模型，接法见它的 safetensors 包里的 README。1.5.17 起输入法用它在模型译文前标词性（如 `adv./adj. fast`），由打了补丁的 llama-server 在翻译的同时算出（[scripts/llama_server_pos](https://github.com/dd1000001000/zhiyi_ime/tree/main/scripts/llama_server_pos)）。在要看上文才能定词性的词上：
 
-<img src="media/pos_head.zh-CN.svg" alt="知意 v4-1026 词性头在兼类词上的词性正确率：UD 2.18 测试集 9 种语言的兼类词和手写的中英文对照，与只按词频、不给上文的词性头和 GLM-5.3 对比" width="100%">
+<img src="media/pos_head.zh-CN.svg" alt="知意 v4-1026 和 v4-1113-RL 的词性头在兼类词上的词性正确率：UD 2.18 测试集 9 种语言的兼类词和手写的中英文对照，与只按词频、不给上文的词性头和 GLM-5.3 对比" width="100%">
 
 ## 中立选词测试集 v5：困难集
 
@@ -86,7 +89,7 @@ ng1017+1.4V2-Long-L18 在 1.4V2-Long-L18 上加了一个词语 n-gram（三元�
 
 ## 许可
 
-知意自己训练的模型（各版选词模型、离线翻译模型 v2、v3、v4、v4-1026、ngram-ml-1024）的权重按 [Apache-2.0](LICENSE) 发布
+知意自己训练的模型（各版选词模型、离线翻译模型 v2、v3、v4、v4-1026、v4-1113-RL、ngram-ml-1024）的权重按 [Apache-2.0](LICENSE) 发布
 （2026-10-20 前为 GPL-3.0-only）；词语 n-gram ng1017 随其底座按 [LGPL-2.1-or-later](LICENSE-LGPL-2.1.txt) 发布；
 选词模型 safetensors 压缩包里的 `candle_ref/` 参考代码和知意输入法一样按 GPL-3.0-only 发布。上游部分保持各自的许可，
 每个压缩包附带对应的许可证。中立选词测试集 v2–v5 的数据库按 ODC-By 1.0 发布（[v2](benchmarks/neutral-v2/LICENSE-DATA.txt)、[v3](benchmarks/neutral-v3/LICENSE-DATA.txt)、[v4](benchmarks/neutral-v4/LICENSE-DATA.txt)、[v5](benchmarks/neutral-v5/LICENSE-DATA.txt)），网页原文的版权归原作者，v4 的对话文本来自 LCCC（MIT，作者声明仅限科研用途，见 [LICENSE-LCCC.txt](benchmarks/neutral-v4/LICENSE-LCCC.txt)），v3–v5 的候选来自各输入法引擎、引擎和词库保持各自的许可，打分脚本按 Apache-2.0 发布。
@@ -98,6 +101,7 @@ ng1017+1.4V2-Long-L18 在 1.4V2-Long-L18 上加了一个词语 n-gram（三元�
 - [Qwen3.5-9B](https://huggingface.co/Qwen/Qwen3.5-9B)（通义千问）：选词和组句头蒸馏用的老师模型，经 LoRA 微调（Apache-2.0），只用了它们的打分
 - [LMT-60](https://huggingface.co/NiuTrans/LMT-60-0.6B)（NiuTrans）：离线翻译模型的底座（Apache-2.0）
 - [Hy-MT2](https://huggingface.co/tencent/Hy-MT2-7B)（腾讯混元）：离线翻译蒸馏用的老师模型（7B，v4 起还有 [30B-A3B](https://huggingface.co/tencent/Hy-MT2-30B-A3B)）（Apache-2.0）
+- [GlotLID](https://huggingface.co/cis-lmu/glotlid)（Apache-2.0）：离线翻译 v4-1113-RL 强化学习时判断译文的语种
 - [幽默输入法](https://github.com/Sraw/youmo-ime)：ng1017 的底座（它的拼音语言模型）和 n-gram 混合工具（LGPL-2.1-or-later）；其底座来自 [libime](https://github.com/fcitx/libime)（LGPL-2.1-or-later），混入的网页来自 [FineWeb-2](https://huggingface.co/datasets/HuggingFaceFW/fineweb-2)（ODC-By）和 [Common Crawl](https://commoncrawl.org)
 - [CSL](https://github.com/ydli-ai/CSL)（中文科学文献数据集，Apache-2.0）：ng1017 混入的科研文本
 - [jieba](https://github.com/fxsjy/jieba)（MIT）、[OpenCC](https://github.com/BYVoid/OpenCC)、[SudachiPy](https://github.com/WorksApplications/sudachi.rs)：ngram-ml-1024 的词表
