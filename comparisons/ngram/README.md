@@ -1,6 +1,6 @@
 # 词语 n-gram 对比：知意、幽默、libime、万象、Rime、XimeGboard、清风、青简、libpinyin、sunpinyin、CyIME
 
-各输入法的词语 n-gram 在[中立选词测试集 v2](../../benchmarks/neutral-v2/) 和 [v3](../../benchmarks/neutral-v3/) 上的首选准确率，只用 n-gram，不用任何神经模型。全部在 CPU 上单进程跑，每个 n-gram 跑一套题只要几秒到几分钟。测试日期：2026-11-03（XimeGboard 2026-11-04，清风 2026-11-05）。
+各输入法的词语 n-gram 在[中立选词测试集 v2](../../benchmarks/neutral-v2/)、[v3](../../benchmarks/neutral-v3/)（网页）和 [v4](../../benchmarks/neutral-v4/)（聊天）上的首选准确率，只用 n-gram，不用任何神经模型。全部在 CPU 上单进程跑，每个 n-gram 跑一套题只要几秒到几分钟。测试日期：2026-11-03（XimeGboard 2026-11-04，清风 2026-11-05；各家的 v4 2026-11-13）。
 
 > **说明**：测试结果仅供参考。除青简（调用青简自己的代码）外，各家的 n-gram 都是按其公开的文件格式自己实现读取和打分，没有运行各家的程序，难免与原作者的实际用法有出入；测试集、打分方式和题目来源的偏差见下文。如果发现任何问题（读取或打分有误、版本不对、对哪一家不公平等），请到 [Issues](https://github.com/dd1000001000/zhiyi_models/issues) 提出，我们会核对并更正。
 >
@@ -8,7 +8,7 @@
 
 ![n-gram 对比](media/ngram_compare.zh-CN.svg)
 
-![准确率与查询次数的帕累托前沿](media/ngram_pareto.zh-CN.svg)
+![v2 / v3 / v4 平均准确率与查询次数的帕累托前沿](media/ngram_pareto.zh-CN.svg)
 
 ## 测了哪些
 
@@ -30,7 +30,7 @@
 | sunpinyin open-gram | `lm_sc.3gm.arpa-20140820.tar.bz2` 里的 `lm_sc.3gm.arpa`（sunpinyin 的三元模型，libime 的 lm_sc 最早由它而来），71,759 / 2,500,000 / 1,000,000 条 | 181 MB | `751bab7c…1e2f`（压缩包） | SourceForge [open-gram](https://sourceforge.net/projects/open-gram/) | 数据包和项目页均未注明 |
 | CyIME 九键词组模型 | `t9_ngram-v3-ls-tri-c3.lm`，Release `models`（默认的完整版，2026-10-13 上传），词语三元，修正 Kneser-Ney，语料 LCCC + OpenSubtitles | 213 MB | `11cee2cb…c867` | [Cyletix/CyIME](https://github.com/Cyletix/CyIME) | GPL-3.0（仓库） |
 
-测试集：`neutral-v2.jsonl`（sha256 `1d624a68…6a06ff`，计分 5,211 行）、`neutral-v3.jsonl`（`5d9dc858…e4b`，计分 10,388 行），都在本仓库的同名 Release 里。
+测试集：`neutral-v2.jsonl`（sha256 `1d624a68…6a06ff`，计分 5,211 行）、`neutral-v3.jsonl`（`5d9dc858…e4b`，计分 10,388 行）、`neutral-v4.jsonl`（`a86155bc…8ab8b81`，计分 17,072 行），都在本仓库的同名 Release 里。
 
 ## 怎么测
 
@@ -60,24 +60,25 @@
 - XimeGboard 的语法对雾凇词库本身加分不多：只用雾凇词频、不查语法时 v2 74.9、v3 77.3，加上语法后 v2 74.2（−0.7）、v3 77.7（+0.4）。它的发布说明写的训练语料是作者私有的书籍（诺贝尔文学奖作品、二十四史译文、科学元典、现代小说等），与网页题领域不同。
 - 清风的语法同样加分不多：只用白霜词频、不查语法时（它桌面版的默认）v2 72.3、v3 75.7，加上语法后 v2 72.7（+0.4）、v3 76.2（+0.5）。它的语法是从万象语法里按对话语料挑出来的，体积约为万象的 1/76；它不取光标前的文字，所以和“万象，不给上文”一栏可比。一个词多个读音时取最大词频，虚词判断也按那个读音。
 - v3 是 2026 年 10 月的网页。万象语法文件 10-26 更新，可能有少量重叠，只会对它有利。
+- v4 是 LCCC-base 的 test 部分（微博对话）。青简的语言模型由中文维基百科和 LCCC 统计而来，CyIME 的语料是 LCCC 和字幕，所以 v4 对这两家是领域内；它们用的若是 LCCC 全集，还可能见过 v4 的句子（我们没有比对）。两家在 v4 上比 v2、v3 高约 10 分（青简 88.0，CyIME 81.1），三套平均分受此影响。
 
 ## 结果（首选准确率 %）
 
-| | v2 全部 | v3 全部 | v3 全拼 | v3 首字母 | v3 部分 / 混拼 | v3 短词 | v3 两词 | v3 长句 |
-|---|---|---|---|---|---|---|---|---|
-| 行数 | 5,211 | 10,388 | 7,423 | 709 | 2,256 | 7,735 | 913 | 1,740 |
-| 知意 ng1017 | 84.5 | 85.0 | 88.1 | 66.4 | 80.5 | 83.9 | 88.0 | 88.4 |
-| 幽默输入法 lm.arpa | **85.5** | **85.2** | **88.2** | **67.8** | **81.0** | **84.0** | **88.4** | **89.1** |
-| fcitx5 libime lm_sc | 83.9 | 84.2 | 87.6 | 62.9 | 79.4 | 83.2 | 87.4 | 86.9 |
-| 万象 LMDG 语法 + 词库，给上文 | 80.8 | 82.2 | 87.3 | 52.0 | 74.8 | 81.3 | 85.5 | 84.4 |
-| 万象 LMDG，不给上文（万象默认） | 75.5 | 77.2 | 83.7 | 35.7 | 68.9 | 75.1 | 83.7 | 83.2 |
-| Rime 官方语法 zh-hans + essay | 77.6 | 78.5 | 83.5 | 49.5 | 71.1 | 77.7 | 82.3 | 80.1 |
-| XimeGboard 语法 + 雾凇词库 | 74.2 | 77.7 | 83.0 | 44.7 | 70.4 | 76.4 | 80.5 | 81.7 |
-| 清风输入法 万象精简语法 + 白霜词库 | 72.7 | 76.2 | 83.0 | 35.4 | 66.4 | 75.5 | 78.8 | 77.7 |
-| 青简 二元模型 lm.qj | 74.0 | 75.6 | 81.4 | 42.7 | 66.8 | 75.4 | 77.8 | 75.2 |
-| libpinyin model20（插值二元） | 74.8 | 77.0 | 81.9 | 50.6 | 69.1 | 77.3 | 77.5 | 75.5 |
-| sunpinyin open-gram 三元 | 70.8 | 72.1 | 77.5 | 38.6 | 64.7 | 71.1 | 75.9 | 74.3 |
-| CyIME 九键词组模型 v3 | 68.4 | 71.7 | 78.5 | 32.3 | 61.5 | 70.0 | 76.6 | 76.6 |
+| | v2 全部 | v3 全部 | v4 全部 | 三套平均 | v3 全拼 | v3 首字母 | v3 部分 / 混拼 | v3 短词 | v3 两词 | v3 长句 |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 行数 | 5,211 | 10,388 | 17,072 | | 7,423 | 709 | 2,256 | 7,735 | 913 | 1,740 |
+| 知意 ng1017 | 84.5 | 85.0 | 81.9 | 83.8 | 88.1 | 66.4 | 80.5 | 83.9 | 88.0 | 88.4 |
+| 幽默输入法 lm.arpa | **85.5** | **85.2** | 85.4 | **85.4** | **88.2** | **67.8** | **81.0** | **84.0** | **88.4** | **89.1** |
+| fcitx5 libime lm_sc | 83.9 | 84.2 | 82.7 | 83.6 | 87.6 | 62.9 | 79.4 | 83.2 | 87.4 | 86.9 |
+| 万象 LMDG 语法 + 词库，给上文 | 80.8 | 82.2 | 83.9 | 82.3 | 87.3 | 52.0 | 74.8 | 81.3 | 85.5 | 84.4 |
+| 万象 LMDG，不给上文（万象默认） | 75.5 | 77.2 | 80.3 | 77.7 | 83.7 | 35.7 | 68.9 | 75.1 | 83.7 | 83.2 |
+| Rime 官方语法 zh-hans + essay | 77.6 | 78.5 | 80.9 | 79.0 | 83.5 | 49.5 | 71.1 | 77.7 | 82.3 | 80.1 |
+| XimeGboard 语法 + 雾凇词库 | 74.2 | 77.7 | 79.1 | 77.0 | 83.0 | 44.7 | 70.4 | 76.4 | 80.5 | 81.7 |
+| 清风输入法 万象精简语法 + 白霜词库 | 72.7 | 76.2 | 78.3 | 75.7 | 83.0 | 35.4 | 66.4 | 75.5 | 78.8 | 77.7 |
+| 青简 二元模型 lm.qj | 74.0 | 75.6 | **88.0** | 79.2 | 81.4 | 42.7 | 66.8 | 75.4 | 77.8 | 75.2 |
+| libpinyin model20（插值二元） | 74.8 | 77.0 | 68.7 | 73.5 | 81.9 | 50.6 | 69.1 | 77.3 | 77.5 | 75.5 |
+| sunpinyin open-gram 三元 | 70.8 | 72.1 | 74.1 | 72.3 | 77.5 | 38.6 | 64.7 | 71.1 | 75.9 | 74.3 |
+| CyIME 九键词组模型 v3 | 68.4 | 71.7 | 81.1 | 73.7 | 78.5 | 32.3 | 61.5 | 70.0 | 76.6 | 76.6 |
 
 幽默对知意 ng1017（逐行配对）：v2 +1.07（95% 区间 +0.42 ~ +1.80，只有幽默对 202 行、只有知意对 146 行，符号检验 p = 0.003）；v3 +0.26（−0.22 ~ +0.74，343 对 316 行，p = 0.29，不显著）。
 
@@ -111,7 +112,7 @@ python opengram_arpa.py lm_sc.3gm.arpa lm_sc.3gm.std.arpa
 ```
 
 ```bash
-python run.py --v2 neutral-v2.jsonl --v3 neutral-v3.jsonl --zhiyi zh.ngram --youmo lm.arpa --cyime t9_ngram-v3-ls-tri-c3.lm --wanxiang-gram wanxiang-lts-zh-hans.gram --wanxiang-dict dicts/dicts --libime lm_sc.arpa --opengram lm_sc.3gm.std.arpa --libpinyin model20 --rime-gram zh-hans-t-essay-bgw.gram --rime-essay essay.txt --rime-opencc OpenCC/data/dictionary --qingjian-lm qj-score.exe,lm.qj --ximegboard-gram XimeGboard.gram --ximegboard-dict apk/assets/rime/cn_dicts --windinput-gram wanxiang-mini.gram --windinput-dict WindInput-0.130.1/data/schemas/pinyin/cn_dicts
+python run.py --v2 neutral-v2.jsonl --v3 neutral-v3.jsonl --v4 neutral-v4.jsonl --zhiyi zh.ngram --youmo lm.arpa --cyime t9_ngram-v3-ls-tri-c3.lm --wanxiang-gram wanxiang-lts-zh-hans.gram --wanxiang-dict dicts/dicts --libime lm_sc.arpa --opengram lm_sc.3gm.std.arpa --libpinyin model20 --rime-gram zh-hans-t-essay-bgw.gram --rime-essay essay.txt --rime-opencc OpenCC/data/dictionary --qingjian-lm qj-score.exe,lm.qj --ximegboard-gram XimeGboard.gram --ximegboard-dict apk/assets/rime/cn_dicts --windinput-gram wanxiang-mini.gram --windinput-dict WindInput-0.130.1/data/schemas/pinyin/cn_dicts
 ```
 
 ```bash
@@ -127,7 +128,7 @@ XimeGboard 的词库从 APK 里取：APK 是 zip，解出 `assets/rime/` 即可�
 | `run.py` | 给每行的整串候选打分，写 `scores/` 和 `results.json` |
 | `cost.py` | 数文件大小、条目数和每行查询次数，写 `cost.json` |
 | `cost.json` | 各 n-gram 的文件大小、条目数和每行查询次数 |
-| `media/` | 图：`ngram_compare.zh-CN.svg`（v2、v3 总分，含 95% bootstrap 区间；文件大小、条目数、查询次数，以 ng1017 为 1.0）和 `ngram_pareto.zh-CN.svg`（v3 准确率对查询次数的帕累托前沿）；图里的数都来自 `results.json` 和 `cost.json` |
+| `media/` | 图：`ngram_compare.zh-CN.svg`（v2、v3、v4 总分，含 95% bootstrap 区间；文件大小、条目数、查询次数，以 ng1017 为 1.0）和 `ngram_pareto.zh-CN.svg`（v2、v3、v4 平均准确率对查询次数的帕累托前沿）；图里的数都来自 `results.json` 和 `cost.json` |
 | `ngram_lm.py` | 知意 n-gram（`.ngram`）和 ARPA（幽默、libime、sunpinyin）的读取和打分 |
 | `opengram_arpa.py` | sunpinyin open-gram 的线性概率文本转标准 ARPA |
 | `libpinyin_lm.py` | libpinyin 插值二元模型的读取和打分 |

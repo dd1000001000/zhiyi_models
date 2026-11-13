@@ -1,8 +1,8 @@
-"""Word n-grams of four input methods on the neutral word-choice test sets v2 and v3, each n-gram alone, CPU only.
+"""Word n-grams of several input methods on the neutral word-choice test sets v2, v3 and v4, each n-gram alone, CPU only.
 Each scores a row's whole candidates (those that spell the whole input); its best one is its pick. Scores go to
 scores/<n-gram>_neutral-<set>.jsonl ({"id", "scores"}, null for candidates not compared), accuracies to results.json.
 
-  python run.py --v2 neutral-v2.jsonl --v3 neutral-v3.jsonl --zhiyi zh.ngram --youmo lm.arpa --cyime t9_ngram-v3-ls-tri-c3.lm
+  python run.py --v2 neutral-v2.jsonl --v3 neutral-v3.jsonl [--v4 neutral-v4.jsonl] --zhiyi zh.ngram --youmo lm.arpa --cyime t9_ngram-v3-ls-tri-c3.lm
                 --wanxiang-gram wanxiang-lts-zh-hans.gram --wanxiang-dict <dicts.zip unpacked>/dicts
                 --libime lm_sc.arpa --opengram lm_sc.3gm.std.arpa (opengram_arpa.py) --libpinyin <model20.text unpacked>
                 --rime-gram zh-hans-t-essay-bgw.gram --rime-essay essay.txt --rime-opencc <OpenCC data/dictionary> --qingjian-lm <qj-score exe>,lm.qj
@@ -116,14 +116,16 @@ def hits(rows, sc):
 def main():
     sys.stdout.reconfigure(encoding="utf-8")
     p = argparse.ArgumentParser()
-    for k in ("v2", "v3", "zhiyi", "youmo", "cyime", "wanxiang-gram", "wanxiang-dict", "libime", "opengram", "libpinyin",
+    for k in ("v2", "v3", "v4", "zhiyi", "youmo", "cyime", "wanxiang-gram", "wanxiang-dict", "libime", "opengram", "libpinyin",
               "rime-gram", "rime-essay", "rime-opencc", "qingjian-lm", "ximegboard-gram", "ximegboard-dict", "windinput-gram",
               "windinput-dict"):
         p.add_argument("--" + k)
     a = p.parse_args()
     os.makedirs(os.path.join(HERE, "scores"), exist_ok=True)
     out = {}
-    for v, data in (("v2", a.v2), ("v3", a.v3)):
+    for v, data in (("v2", a.v2), ("v3", a.v3), ("v4", a.v4)):
+        if not data:
+            continue
         rows = [r for r in map(json.loads, open(data, encoding="utf-8")) if r["scored"]]
         out[v] = {}
         for name, load in scorers(a).items():
