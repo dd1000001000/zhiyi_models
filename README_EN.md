@@ -26,6 +26,7 @@ neutral word-choice test sets [v2](benchmarks/neutral-v2), [v3](benchmarks/neutr
 | 1.4V2-Long-L18 | Chinese and English word choice and composition, 18 layers | 1.5.9-1.5.11 | [model-zhen-long-l18](https://github.com/dd1000001000/zhiyi_models/releases/tag/model-zhen-long-l18) |
 | ng1017 | Simplified Chinese word n-gram | From 1.5.10 | [ngram-zh-1017](https://github.com/dd1000001000/zhiyi_models/releases/tag/ngram-zh-1017) |
 | ngram-ml-1024 | Traditional Chinese and Japanese word n-grams | No | [ngram-ml-1024](https://github.com/dd1000001000/zhiyi_models/releases/tag/ngram-ml-1024) |
+| Offline translation V5-Preview | A candidate's translation continues the text before it; 9 languages, with a part-of-speech head | Not in the IME | [translator-v5-preview](https://github.com/dd1000001000/zhiyi_models/releases/tag/translator-v5-preview) |
 | Offline translation v4-1113-RL | Candidate translation in 9 languages, with a part-of-speech head | From 2026-11-13 | [translator-v4-1113-rl](https://github.com/dd1000001000/zhiyi_models/releases/tag/translator-v4-1113-rl) |
 | Offline translation v4-1026 | Candidate translation in 9 languages, with a part-of-speech head | 1.5.17 to 2026-11-13 | [translator-v4-1026](https://github.com/dd1000001000/zhiyi_models/releases/tag/translator-v4-1026) |
 | Offline translation v4 | Candidate translation in 9 languages | 2026-10-24 to 10-26 | [translator-v4](https://github.com/dd1000001000/zhiyi_models/releases/tag/translator-v4) |
@@ -71,11 +72,13 @@ Candidates the learning-mode language packs lack are translated by a model on yo
 
 [Zhiyi v4-1113-RL](https://github.com/dd1000001000/zhiyi_models/releases/tag/translator-v4-1113-rl) is the version after v4-1026, with the same structure, download size and speed; the IME uses it from 2026-11-13 (translator manifest version 7). Starting from v4-1026, it learned 3.2 million more translations (about 1.0 million of them for the directions v4-1026 was weakest in: Japanese, Korean, French, German, Spanish, Russian and Vietnamese sentences into English and Chinese, and sentences into French, German, Spanish and Russian), was averaged 0.7 / 0.3 with v4-1026, and then went through one round of reinforcement learning whose reward checks only what can be checked (numbers and names kept, the target language, the meaning of ambiguous words), with no learned quality metric. Its part-of-speech head was retrained for it.
 
-<img src="media/translator.en-US.svg" alt="Offline translation models: (a)(b)(c) COMET-22 on FLORES-200, WMT24++ and NTREX-128 (d)(e)(f) answers not in the target language (g) GPU time (h) video memory (i) download size (j) CPU time (k) memory" width="100%">
+[Zhiyi V5-Preview](https://github.com/dd1000001000/zhiyi_models/releases/tag/translator-v5-preview) is a preview: the IME does not use it yet. It has v4-1113-RL's structure, size and speed; what is new is that a candidate's translation continues the text before it: after 我今天很 ("today I am very") the candidate 想你 becomes "miss you", not a sentence of its own, "I miss you."; subject, person, number and tense follow the context, with no capital or full stop the continuation would not have, and an input method's wrong conversions are translated as typed instead of being guessed from the context. Starting from the averaged model v4-1113-RL began its reinforcement learning from, it learned about 200,000 candidates with their real context (the continuing translations written by [Qwen3.8-27B](https://huggingface.co/Qwen)) and 160,000 rows of v4-1113-RL's data, then went through one round of reinforcement learning that again checks only what can be checked. On sentences it is about v4-1113-RL's level, a little lower; the comparison on candidates in context is in its model card. Its part-of-speech head was retrained for it.
+
+<img src="media/translator.en-US.svg" alt="Offline translation models: (a)(b)(c) COMET-22 on FLORES-200, WMT24++ and NTREX-128 (d)(e)(f) answers not in the target language (g) GPU time (h) video memory (i) download size (j) CPU time (k) memory, with Zhiyi V5-Preview" width="100%">
 
 [Zhiyi v4-1026](https://github.com/dd1000001000/zhiyi_models/releases/tag/translator-v4-1026) comes with a 10 MB part-of-speech head: it reads the translator's own hidden states and tags the candidate from the text before it, whatever language it translates into, with no second model (how to connect it: the README in its safetensors zip). From 1.5.17 the IME shows its tags before the model's translations (`adv./adj. fast`), computed by a patched llama-server while it translates ([scripts/llama_server_pos](https://github.com/dd1000001000/zhiyi_ime/tree/main/scripts/llama_server_pos)). On words whose part of speech depends on that text:
 
-<img src="media/pos_head.en-US.svg" alt="Part-of-speech accuracy of the heads of Zhiyi v4-1026 and v4-1113-RL on ambiguous words: UD 2.18 test sets in 9 languages and hand-written Chinese and English pairs, against the most frequent tag, the head without context and GLM-5.3" width="100%">
+<img src="media/pos_head.en-US.svg" alt="Part-of-speech accuracy of the heads of Zhiyi v4-1026, v4-1113-RL and V5-Preview on ambiguous words: UD 2.18 test sets in 9 languages and hand-written Chinese and English pairs, against the most frequent tag, the head without context and GLM-5.3" width="100%">
 
 ## Neutral word-choice test set v5: the hard set
 
@@ -108,7 +111,7 @@ Zhiyi IME's engine, with a scorer; any model or IME that ranks candidates can be
 
 ## License
 
-The weights of Zhiyi's own models (every word-choice model, offline translation v2, v3, v4, v4-1026 and v4-1113-RL, ngram-ml-1024)
+The weights of Zhiyi's own models (every word-choice model, offline translation v2, v3, v4, v4-1026, v4-1113-RL and V5-Preview, ngram-ml-1024)
 are licensed under [Apache-2.0](LICENSE) (GPL-3.0-only until 2026-10-20); the word n-gram ng1017 is
 [LGPL-2.1-or-later](LICENSE-LGPL-2.1.txt), as its base; the `candle_ref/` reference code in the word-choice safetensors
 zips is GPL-3.0-only, like Zhiyi IME. Upstream parts keep their own licenses, carried in each zip. The databases of the neutral word-choice test sets v2-v5 are
@@ -122,11 +125,12 @@ whose engines and dictionaries keep their own licenses; the scorers are Apache-2
 - [Qwen3.5-9B](https://huggingface.co/Qwen/Qwen3.5-9B) (Qwen team, Alibaba Cloud): the LoRA teachers of word choice and composition (Apache-2.0); only their scores were used
 - [LMT-60](https://huggingface.co/NiuTrans/LMT-60-0.6B) (NiuTrans): the base of the offline translation models (Apache-2.0)
 - [Hy-MT2](https://huggingface.co/tencent/Hy-MT2-7B) (Tencent Hunyuan): the translation teachers (7B, from v4 also [30B-A3B](https://huggingface.co/tencent/Hy-MT2-30B-A3B)) (Apache-2.0)
-- [GlotLID](https://huggingface.co/cis-lmu/glotlid) (Apache-2.0): the language check in offline translation v4-1113-RL's reinforcement learning
+- [GlotLID](https://huggingface.co/cis-lmu/glotlid) (Apache-2.0): the language check in the reinforcement learning of offline translation v4-1113-RL and V5-Preview
+- [Qwen3.8-27B](https://huggingface.co/Qwen) (Qwen team, Alibaba Cloud, Apache-2.0): offline translation V5-Preview's translations in context, its judgement of wrong conversions and part of the part-of-speech labels
 - [Youmo IME](https://github.com/Sraw/youmo-ime): ng1017's base (its pinyin language model) and the n-gram mixing tool (LGPL-2.1-or-later), on [libime](https://github.com/fcitx/libime) (LGPL-2.1-or-later), with pages of [FineWeb-2](https://huggingface.co/datasets/HuggingFaceFW/fineweb-2) (ODC-By) and [Common Crawl](https://commoncrawl.org)
 - [CSL](https://github.com/ydli-ai/CSL) (Chinese Scientific Literature, Apache-2.0): science text mixed into ng1017
 - [jieba](https://github.com/fxsjy/jieba) (MIT), [OpenCC](https://github.com/BYVoid/OpenCC), [SudachiPy](https://github.com/WorksApplications/sudachi.rs): the vocabularies of ngram-ml-1024
-- [SkyPile-150B](https://huggingface.co/datasets/Skywork/SkyPile-150B) (Skywork, Skywork Community License), [LCCC](https://github.com/thu-coai/CDial-GPT) (MIT), [C4](https://huggingface.co/datasets/allenai/c4) (ODC-BY), [SODA](https://huggingface.co/datasets/allenai/soda) (CC BY 4.0), [Tatoeba](https://tatoeba.org) (CC BY 2.0 FR): text of the word-choice, composition and translation data
+- [SkyPile-150B](https://huggingface.co/datasets/Skywork/SkyPile-150B) (Skywork, Skywork Community License), [LCCC](https://github.com/thu-coai/CDial-GPT) (MIT), [C4 and mC4](https://huggingface.co/datasets/allenai/c4) (ODC-BY), [SODA](https://huggingface.co/datasets/allenai/soda) (CC BY 4.0), [Tatoeba](https://tatoeba.org) (CC BY 2.0 FR): text of the word-choice, composition and translation data
 - [FineWeb](https://huggingface.co/datasets/HuggingFaceFW/fineweb) and [FineWeb-2](https://huggingface.co/datasets/HuggingFaceFW/fineweb-2) (ODC-By 1.0): recent web pages, and the Traditional Chinese, Cantonese, Japanese, Korean and Vietnamese text
 - [Cantonese Wikipedia](https://zh-yue.wikipedia.org) (CC BY-SA 4.0): part of ML-pumpkin-1026's Jyutping composition text
 - librime with the rime schemas, fcitx5-table-extra, libchewing, Mozc, pypinyin: candidates and readings of the multilingual training data (used only to make training rows; none of them is in the files)

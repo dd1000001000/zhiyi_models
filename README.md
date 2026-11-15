@@ -23,6 +23,7 @@ n-gram，以及学习模式里翻译候选的离线翻译模型。模型文件�
 | 1.4V2-Long-L18 | 中英文选词和组句，18 层 | 1.5.9–1.5.11 | [model-zhen-long-l18](https://github.com/dd1000001000/zhiyi_models/releases/tag/model-zhen-long-l18) |
 | ng1017 | 简体中文词语 n-gram | 1.5.10 起 | [ngram-zh-1017](https://github.com/dd1000001000/zhiyi_models/releases/tag/ngram-zh-1017) |
 | ngram-ml-1024 | 繁体中文、日文词语 n-gram | 不用 | [ngram-ml-1024](https://github.com/dd1000001000/zhiyi_models/releases/tag/ngram-ml-1024) |
+| 离线翻译 V5-Preview | 候选的译文接着上文往下写，9 种语言，带词性头 | 未接入 | [translator-v5-preview](https://github.com/dd1000001000/zhiyi_models/releases/tag/translator-v5-preview) |
 | 离线翻译 v4-1113-RL | 9 种语言的候选翻译，带词性头 | 2026-11-13 起 | [translator-v4-1113-rl](https://github.com/dd1000001000/zhiyi_models/releases/tag/translator-v4-1113-rl) |
 | 离线翻译 v4-1026 | 9 种语言的候选翻译，带词性头 | 1.5.17 至 2026-11-13 | [translator-v4-1026](https://github.com/dd1000001000/zhiyi_models/releases/tag/translator-v4-1026) |
 | 离线翻译 v4 | 9 种语言的候选翻译 | 2026-10-24 至 10-26 | [translator-v4](https://github.com/dd1000001000/zhiyi_models/releases/tag/translator-v4) |
@@ -68,11 +69,13 @@ ng1017+1.4V2-Long-L18 在 1.4V2-Long-L18 上加了一个词语 n-gram（三元�
 
 [知意 v4-1113-RL](https://github.com/dd1000001000/zhiyi_models/releases/tag/translator-v4-1113-rl) 是 v4-1026 之后的版本，结构、下载大小和速度都和它一样，2026-11-13 起输入法使用它（翻译清单第 7 版）。它从 v4-1026 出发，先多学了 320 万条新译文（其中约 100 万条补的是 v4-1026 最弱的方向：日、韩、法、德、西、俄、越语译成英文和中文，以及译成法、德、西、俄语的句子），再和 v4-1026 按 0.7 / 0.3 平均权重，最后做一轮强化学习，奖励只检查能核对的东西（数字和专名有没有保留、是不是目标语言、多义词选没选对），不用任何打分模型。词性头为它重新训练过。
 
-<img src="media/translator.zh-CN.svg" alt="离线翻译模型对比：(a)(b)(c) FLORES-200、WMT24++、NTREX-128 的 COMET-22 (d)(e)(f) 不是目标语言的比例 (g) 显卡耗时 (h) 显存 (i) 下载大小 (j) CPU 耗时 (k) 内存" width="100%">
+[知意 V5-Preview](https://github.com/dd1000001000/zhiyi_models/releases/tag/translator-v5-preview) 是预览版，输入法还没有用它。结构、大小和速度与 v4-1113-RL 相同，新的地方是候选的译文接着上文往下写：“我今天很”后面的“想你”译成“miss you”，而不是单独一句“I miss you.”；主语、人称、数和时态跟着上文走，不加接在后面时不该有的大写和句号；输入法转错的候选照打出的字翻，不按上文猜成别的意思。它从 v4-1113-RL 强化学习之前的平均模型出发，学了约 20 万个带真实上文的候选（接着上文的译文由 [Qwen3.8-27B](https://huggingface.co/Qwen) 写成）和 16 万条 v4-1113-RL 的数据，再做一轮同样只检查能核对的东西的强化学习。整句翻译和 v4-1113-RL 相当、略低；带上文的候选的对比见它的模型卡。词性头为它重新训练过。
+
+<img src="media/translator.zh-CN.svg" alt="离线翻译模型对比：(a)(b)(c) FLORES-200、WMT24++、NTREX-128 的 COMET-22 (d)(e)(f) 不是目标语言的比例 (g) 显卡耗时 (h) 显存 (i) 下载大小 (j) CPU 耗时 (k) 内存，含知意 V5-Preview" width="100%">
 
 [知意 v4-1026](https://github.com/dd1000001000/zhiyi_models/releases/tag/translator-v4-1026) 另带一个 10 MB 的词性头：读翻译模型自己的隐藏状态，按候选前面的上文判断候选的词性，翻成哪种语言都能用，不需要第二个模型，接法见它的 safetensors 包里的 README。1.5.17 起输入法用它在模型译文前标词性（如 `adv./adj. fast`），由打了补丁的 llama-server 在翻译的同时算出（[scripts/llama_server_pos](https://github.com/dd1000001000/zhiyi_ime/tree/main/scripts/llama_server_pos)）。在要看上文才能定词性的词上：
 
-<img src="media/pos_head.zh-CN.svg" alt="知意 v4-1026 和 v4-1113-RL 的词性头在兼类词上的词性正确率：UD 2.18 测试集 9 种语言的兼类词和手写的中英文对照，与只按词频、不给上文的词性头和 GLM-5.3 对比" width="100%">
+<img src="media/pos_head.zh-CN.svg" alt="知意 v4-1026、v4-1113-RL 和 V5-Preview 的词性头在兼类词上的词性正确率：UD 2.18 测试集 9 种语言的兼类词和手写的中英文对照，与只按词频、不给上文的词性头和 GLM-5.3 对比" width="100%">
 
 ## 中立选词测试集 v5：困难集
 
@@ -92,7 +95,7 @@ ng1017+1.4V2-Long-L18 在 1.4V2-Long-L18 上加了一个词语 n-gram（三元�
 
 ## 许可
 
-知意自己训练的模型（各版选词模型、离线翻译模型 v2、v3、v4、v4-1026、v4-1113-RL、ngram-ml-1024）的权重按 [Apache-2.0](LICENSE) 发布
+知意自己训练的模型（各版选词模型、离线翻译模型 v2、v3、v4、v4-1026、v4-1113-RL、V5-Preview、ngram-ml-1024）的权重按 [Apache-2.0](LICENSE) 发布
 （2026-10-20 前为 GPL-3.0-only）；词语 n-gram ng1017 随其底座按 [LGPL-2.1-or-later](LICENSE-LGPL-2.1.txt) 发布；
 选词模型 safetensors 压缩包里的 `candle_ref/` 参考代码和知意输入法一样按 GPL-3.0-only 发布。上游部分保持各自的许可，
 每个压缩包附带对应的许可证。中立选词测试集 v2–v5 的数据库按 ODC-By 1.0 发布（[v2](benchmarks/neutral-v2/LICENSE-DATA.txt)、[v3](benchmarks/neutral-v3/LICENSE-DATA.txt)、[v4](benchmarks/neutral-v4/LICENSE-DATA.txt)、[v5](benchmarks/neutral-v5/LICENSE-DATA.txt)），网页原文的版权归原作者，v4 的对话文本来自 LCCC（MIT，作者声明仅限科研用途，见 [LICENSE-LCCC.txt](benchmarks/neutral-v4/LICENSE-LCCC.txt)），v3–v5 的候选来自各输入法引擎、引擎和词库保持各自的许可，打分脚本按 Apache-2.0 发布。
@@ -104,11 +107,12 @@ ng1017+1.4V2-Long-L18 在 1.4V2-Long-L18 上加了一个词语 n-gram（三元�
 - [Qwen3.5-9B](https://huggingface.co/Qwen/Qwen3.5-9B)（通义千问）：选词和组句头蒸馏用的老师模型，经 LoRA 微调（Apache-2.0），只用了它们的打分
 - [LMT-60](https://huggingface.co/NiuTrans/LMT-60-0.6B)（NiuTrans）：离线翻译模型的底座（Apache-2.0）
 - [Hy-MT2](https://huggingface.co/tencent/Hy-MT2-7B)（腾讯混元）：离线翻译蒸馏用的老师模型（7B，v4 起还有 [30B-A3B](https://huggingface.co/tencent/Hy-MT2-30B-A3B)）（Apache-2.0）
-- [GlotLID](https://huggingface.co/cis-lmu/glotlid)（Apache-2.0）：离线翻译 v4-1113-RL 强化学习时判断译文的语种
+- [GlotLID](https://huggingface.co/cis-lmu/glotlid)（Apache-2.0）：离线翻译 v4-1113-RL 和 V5-Preview 强化学习时判断译文的语种
+- [Qwen3.8-27B](https://huggingface.co/Qwen)（通义千问，Apache-2.0）：离线翻译 V5-Preview 带上文的译文、转错候选的判断和词性头的部分标注
 - [幽默输入法](https://github.com/Sraw/youmo-ime)：ng1017 的底座（它的拼音语言模型）和 n-gram 混合工具（LGPL-2.1-or-later）；其底座来自 [libime](https://github.com/fcitx/libime)（LGPL-2.1-or-later），混入的网页来自 [FineWeb-2](https://huggingface.co/datasets/HuggingFaceFW/fineweb-2)（ODC-By）和 [Common Crawl](https://commoncrawl.org)
 - [CSL](https://github.com/ydli-ai/CSL)（中文科学文献数据集，Apache-2.0）：ng1017 混入的科研文本
 - [jieba](https://github.com/fxsjy/jieba)（MIT）、[OpenCC](https://github.com/BYVoid/OpenCC)、[SudachiPy](https://github.com/WorksApplications/sudachi.rs)：ngram-ml-1024 的词表
-- [SkyPile-150B](https://huggingface.co/datasets/Skywork/SkyPile-150B)（昆仑万维天工 Skywork，Skywork Community License）、[LCCC](https://github.com/thu-coai/CDial-GPT)（MIT）、[C4](https://huggingface.co/datasets/allenai/c4)（ODC-BY）、[SODA](https://huggingface.co/datasets/allenai/soda)（CC BY 4.0）、[Tatoeba](https://tatoeba.org)（CC BY 2.0 FR）：选词、组句和翻译训练数据的文本
+- [SkyPile-150B](https://huggingface.co/datasets/Skywork/SkyPile-150B)（昆仑万维天工 Skywork，Skywork Community License）、[LCCC](https://github.com/thu-coai/CDial-GPT)（MIT）、[C4 与 mC4](https://huggingface.co/datasets/allenai/c4)（ODC-BY）、[SODA](https://huggingface.co/datasets/allenai/soda)（CC BY 4.0）、[Tatoeba](https://tatoeba.org)（CC BY 2.0 FR）：选词、组句和翻译训练数据的文本
 - [FineWeb](https://huggingface.co/datasets/HuggingFaceFW/fineweb) 与 [FineWeb-2](https://huggingface.co/datasets/HuggingFaceFW/fineweb-2)（ODC-By 1.0）：近年网页，以及繁体中文、粤语、日文、韩文、越南文的文本
 - [粤语维基百科](https://zh-yue.wikipedia.org)（CC BY-SA 4.0）：ML-pumpkin-1026 粤拼组句的部分文本
 - librime 与 rime 各方案、fcitx5-table-extra、libchewing、Mozc、pypinyin：多语言模型训练数据的候选和读音（只用来生成训练数据，不在模型文件里）
