@@ -23,8 +23,8 @@ n-gram，以及学习模式里翻译候选的离线翻译模型。模型文件�
 | 1.4V2-Long-L18 | 中英文选词和组句，18 层 | 1.5.9–1.5.11 | [model-zhen-long-l18](https://github.com/dd1000001000/zhiyi_models/releases/tag/model-zhen-long-l18) |
 | ng1017 | 简体中文词语 n-gram | 1.5.10 起 | [ngram-zh-1017](https://github.com/dd1000001000/zhiyi_models/releases/tag/ngram-zh-1017) |
 | ngram-ml-1024 | 繁体中文、日文词语 n-gram | 不用 | [ngram-ml-1024](https://github.com/dd1000001000/zhiyi_models/releases/tag/ngram-ml-1024) |
-| 离线翻译 V5-Preview | 候选的译文接着上文往下写，9 种语言，带词性头 | 未接入 | [translator-v5-preview](https://github.com/dd1000001000/zhiyi_models/releases/tag/translator-v5-preview) |
-| 离线翻译 v4-1113-RL | 9 种语言的候选翻译，带词性头 | 2026-11-13 起 | [translator-v4-1113-rl](https://github.com/dd1000001000/zhiyi_models/releases/tag/translator-v4-1113-rl) |
+| 离线翻译 V5-Preview | 候选的译文接着上文往下写，9 种语言，带词性头 | 2026-11-15 起（设置里显示为 v5） | [translator-v5-preview](https://github.com/dd1000001000/zhiyi_models/releases/tag/translator-v5-preview) |
+| 离线翻译 v4-1113-RL | 9 种语言的候选翻译，带词性头 | 2026-11-13 至 11-15 | [translator-v4-1113-rl](https://github.com/dd1000001000/zhiyi_models/releases/tag/translator-v4-1113-rl) |
 | 离线翻译 v4-1026 | 9 种语言的候选翻译，带词性头 | 1.5.17 至 2026-11-13 | [translator-v4-1026](https://github.com/dd1000001000/zhiyi_models/releases/tag/translator-v4-1026) |
 | 离线翻译 v4 | 9 种语言的候选翻译 | 2026-10-24 至 10-26 | [translator-v4](https://github.com/dd1000001000/zhiyi_models/releases/tag/translator-v4) |
 | 离线翻译 v3 | 9 种语言的候选翻译 | 2026-10-24 前 | [translator-v3](https://github.com/dd1000001000/zhiyi_models/releases/tag/translator-v3) |
@@ -65,11 +65,11 @@ ng1017+1.4V2-Long-L18 在 1.4V2-Long-L18 上加了一个词语 n-gram（三元�
 
 ## 离线翻译模型
 
-学习模式里语言包查不到的候选由本机的翻译模型翻译，现在用的是知意 v4-1113-RL（2026-11-13 起，之前装了旧版本的在设置“学习”页更新）。v3 从 [LMT-60-0.6B](https://huggingface.co/NiuTrans/LMT-60-0.6B) 的 28 层中去掉 8 层，用腾讯 [Hy-MT2-7B](https://huggingface.co/tencent/Hy-MT2-7B) 对约 275 万条输入法候选和句子（中、英、日、韩、法、德、西、俄、越 9 种语言，带光标前的上文）的译文蒸馏而来。v4 在 [Release translator-v4](https://github.com/dd1000001000/zhiyi_models/releases/tag/translator-v4) 发布，结构和 v3 相同，训练数据增至约 360 万条，新增针对 v3 弱项的约 88 万条（要靠上文选词义的条目由 [Hy-MT2-30B-A3B](https://huggingface.co/tencent/Hy-MT2-30B-A3B) 翻译）和约 1,100 个多义词，并学一个 28 层老师的输出概率。在三个开源测试集上，v4 的 COMET-22 比 v3 高约 2.4–2.5 分（FLORES-200 81.5 → 84.0，WMT24++ 78.1 → 80.5，NTREX-128 79.2 → 81.7），三个都超过 LMT-60 原版（82.2、76.7、81.4）；输出不是目标语言的比例也更低（WMT24++ 0.62% → 0.35%，另外两个都在 0.1% 以下）。两者都是下载约 0.32 GB，显卡上一页约 70 毫秒、CPU 上一页约 0.28 秒，显存和内存都约 1.1 GB。
+学习模式里语言包查不到的候选由本机的翻译模型翻译，现在用的是知意 V5-Preview（2026-11-15 起，设置里显示为 v5；之前装了旧版本的在设置“学习”页更新）。v3 从 [LMT-60-0.6B](https://huggingface.co/NiuTrans/LMT-60-0.6B) 的 28 层中去掉 8 层，用腾讯 [Hy-MT2-7B](https://huggingface.co/tencent/Hy-MT2-7B) 对约 275 万条输入法候选和句子（中、英、日、韩、法、德、西、俄、越 9 种语言，带光标前的上文）的译文蒸馏而来。v4 在 [Release translator-v4](https://github.com/dd1000001000/zhiyi_models/releases/tag/translator-v4) 发布，结构和 v3 相同，训练数据增至约 360 万条，新增针对 v3 弱项的约 88 万条（要靠上文选词义的条目由 [Hy-MT2-30B-A3B](https://huggingface.co/tencent/Hy-MT2-30B-A3B) 翻译）和约 1,100 个多义词，并学一个 28 层老师的输出概率。在三个开源测试集上，v4 的 COMET-22 比 v3 高约 2.4–2.5 分（FLORES-200 81.5 → 84.0，WMT24++ 78.1 → 80.5，NTREX-128 79.2 → 81.7），三个都超过 LMT-60 原版（82.2、76.7、81.4）；输出不是目标语言的比例也更低（WMT24++ 0.62% → 0.35%，另外两个都在 0.1% 以下）。两者都是下载约 0.32 GB，显卡上一页约 70 毫秒、CPU 上一页约 0.28 秒，显存和内存都约 1.1 GB。
 
-[知意 v4-1113-RL](https://github.com/dd1000001000/zhiyi_models/releases/tag/translator-v4-1113-rl) 是 v4-1026 之后的版本，结构、下载大小和速度都和它一样，2026-11-13 起输入法使用它（翻译清单第 7 版）。它从 v4-1026 出发，先多学了 320 万条新译文（其中约 100 万条补的是 v4-1026 最弱的方向：日、韩、法、德、西、俄、越语译成英文和中文，以及译成法、德、西、俄语的句子），再和 v4-1026 按 0.7 / 0.3 平均权重，最后做一轮强化学习，奖励只检查能核对的东西（数字和专名有没有保留、是不是目标语言、多义词选没选对），不用任何打分模型。词性头为它重新训练过。
+[知意 v4-1113-RL](https://github.com/dd1000001000/zhiyi_models/releases/tag/translator-v4-1113-rl) 是 v4-1026 之后的版本，结构、下载大小和速度都和它一样，2026-11-13 至 11-15 输入法使用它（翻译清单第 7 版）。它从 v4-1026 出发，先多学了 320 万条新译文（其中约 100 万条补的是 v4-1026 最弱的方向：日、韩、法、德、西、俄、越语译成英文和中文，以及译成法、德、西、俄语的句子），再和 v4-1026 按 0.7 / 0.3 平均权重，最后做一轮强化学习，奖励只检查能核对的东西（数字和专名有没有保留、是不是目标语言、多义词选没选对），不用任何打分模型。词性头为它重新训练过。
 
-[知意 V5-Preview](https://github.com/dd1000001000/zhiyi_models/releases/tag/translator-v5-preview) 是预览版，输入法还没有用它。结构、大小和速度与 v4-1113-RL 相同，新的地方是候选的译文接着上文往下写：“我今天很”后面的“想你”译成“miss you”，而不是单独一句“I miss you.”；主语、人称、数和时态跟着上文走，不加接在后面时不该有的大写和句号；输入法转错的候选照打出的字翻，不按上文猜成别的意思。它从 v4-1113-RL 强化学习之前的平均模型出发，学了约 20 万个带真实上文的候选（接着上文的译文由 [Qwen3.8-27B](https://huggingface.co/Qwen) 写成）和 16 万条 v4-1113-RL 的数据，再做一轮同样只检查能核对的东西的强化学习。整句翻译和 v4-1113-RL 相当、略低；带上文的候选的对比见它的模型卡。词性头为它重新训练过。
+[知意 V5-Preview](https://github.com/dd1000001000/zhiyi_models/releases/tag/translator-v5-preview) 2026-11-15 起输入法使用它（翻译清单第 8 版，设置里显示为 v5）。结构、大小和速度与 v4-1113-RL 相同，新的地方是候选的译文接着上文往下写：“我今天很”后面的“想你”译成“miss you”，而不是单独一句“I miss you.”；主语、人称、数和时态跟着上文走，不加接在后面时不该有的大写和句号；输入法转错的候选照打出的字翻，不按上文猜成别的意思。它从 v4-1113-RL 强化学习之前的平均模型出发，学了约 20 万个带真实上文的候选（接着上文的译文由 [Qwen3.8-27B](https://huggingface.co/Qwen) 写成）和 16 万条 v4-1113-RL 的数据，再做一轮同样只检查能核对的东西的强化学习。整句翻译和 v4-1113-RL 相当、略低；带上文的候选的对比见它的模型卡。词性头为它重新训练过。
 
 <img src="media/translator.zh-CN.svg" alt="离线翻译模型对比：(a)(b)(c) FLORES-200、WMT24++、NTREX-128 的 COMET-22 (d)(e)(f) 不是目标语言的比例 (g) 显卡耗时 (h) 显存 (i) 下载大小 (j) CPU 耗时 (k) 内存，含知意 V5-Preview" width="100%">
 
