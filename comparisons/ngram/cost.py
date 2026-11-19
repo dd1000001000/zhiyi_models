@@ -13,11 +13,13 @@
                  --rime-gram zh-hans-t-essay-bgw.gram --rime-essay essay.txt --rime-opencc <dir> --qingjian-lm <qj-score>,lm.qj
                  --ximegboard-gram XimeGboard.gram --ximegboard-dict <its APK's assets/rime/cn_dicts>
                  --windinput-gram wanxiang-mini.gram --windinput-dict <its package's data/schemas/pinyin/cn_dicts>
+                 --wowtype-lm words.lm --wowtype-lexicon lexicon.tsv
 -> cost.json (merged into the existing one: give only the n-grams to count)
 File sizes of the new ones: libime its built sc.lm (kenlm binary, the file fcitx5 installs; chinese-ime-lm's release
 language-model-libime-20260629 carries the same build), open-gram its lm_sc.3gm.arpa text, libpinyin interpolation2.text,
 Rime the grammar plus essay.txt, Qingjian lm.qj, XimeGboard the grammar plus the 5 rime_ice tables (text),
-WindInput the grammar plus the 6 rime_frost tables (text).
+WindInput the grammar plus the 6 rime_frost tables (text), WowType words.lm plus its lexicon.tsv (text; entries: its
+words and word pairs plus the lexicon's entries; lookups: word-model queries plus lexicon look-ups).
 """
 import argparse
 import json
@@ -48,7 +50,7 @@ def main():
     p = argparse.ArgumentParser()
     for k in ("v3", "zhiyi", "youmo", "cyime", "wanxiang-gram", "wanxiang-dict", "libime", "opengram", "libpinyin",
               "rime-gram", "rime-essay", "rime-opencc", "qingjian-lm", "ximegboard-gram", "ximegboard-dict",
-              "windinput-gram", "windinput-dict"):
+              "windinput-gram", "windinput-dict", "wowtype-lm", "wowtype-lexicon"):
         p.add_argument("--" + k)
     a = p.parse_args()
     rows = [r for r in map(json.loads, open(a.v3, encoding="utf-8")) if r["scored"]]
@@ -220,6 +222,22 @@ def main():
         info = dict(line.split(" ", 1) for line in res.stderr.strip().splitlines() if " " in line)
         words, bigrams = map(int, info["entries"].split())
         add("qingjian-lm", os.path.getsize(lmqj), words + bigrams, int(info["lookups"]) / len(rows))
+
+    if a.wowtype_lm:
+        from wowtype_words import WowtypeWords
+        for name, ctx in (("wowtype-noctx", False), ("wowtype-ctx", True)):
+            ww = WowtypeWords(a.wowtype_lm, a.wowtype_lexicon, ctx=ctx)
+            CountingDict.n = 0
+            ww.cost = CountingDict(ww.cost)
+            q = [0]
+            lm_w = ww.lm
+
+            def counted_lm(prev, cur, lm_w=lm_w, q=q):
+                q[0] += 1
+                return lm_w(prev, cur)
+            ww.lm = counted_lm
+            add(name, os.path.getsize(a.wowtype_lm) + os.path.getsize(a.wowtype_lexicon),
+                ww.n_words + ww.n_bigrams + ww.n_entries, lookups(rows, ww.score, lambda q=q: q[0] + CountingDict.n))
 
     path = os.path.join(HERE, "cost.json")
     old = json.load(open(path, encoding="utf-8")) if os.path.exists(path) else {}

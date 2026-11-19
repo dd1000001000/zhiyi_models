@@ -17,6 +17,7 @@
          --metaseq-v1-4m <file> --metaseq-v1-25m <file> --rime-ai-ime <Qwen3.5-0.8B>,<qwen35-08b-ime-v1-Q8_0.gguf>
                  --fujik0 <Qwen3.5-0.8B> --lime <Qwen3-0.6B>,367804096 --cnmbert <folder> --qingjian <tongbian>,<zhiwei>
                  --zhizi <shunshou-zhizi-30m folder>
+                 --metasequoia-v2 <rerank-v2 folder> --wowtype nnlm.bin --llm-rerank <folder>,Qwen3-0.6B-Base-Q4_K_M.gguf
 -> cost.json
 New models' file sizes are what each project runs: Rime-AI-IME its Q8_0 GGUF, FuJiK0 the bf16 Qwen3.5-0.8B (its MLX
 bf16 default), LIME the IQ4_XS GGUF of Qwen3-0.6B (Hugging Face unsloth/Qwen3-0.6B-GGUF), CNMBert the fp32
@@ -106,8 +107,9 @@ def main():
     p.add_argument("--v3", required=True)
     p.add_argument("--zhiyi", action="append")
     for k in ("metasequoia", "youmo", "chaoinput", "qwen", "pinyingpt", "gpt2-zh-21k", "metaseq-v1-4m", "metaseq-v1-25m",
-              "cnmbert", "zhizi"):
+              "cnmbert", "zhizi", "metasequoia-v2", "wowtype"):
         p.add_argument("--" + k)
+    p.add_argument("--llm-rerank", help="<folder>,<Qwen3-0.6B-Base-Q4_K_M.gguf in it>")
     p.add_argument("--rime-ai-ime", help="<Qwen3.5-0.8B folder>,<its released GGUF, for the file size>")
     p.add_argument("--fujik0", help="<Qwen3.5-0.8B folder>")
     p.add_argument("--lime", help="<Qwen3-0.6B folder>[,<size in bytes of the IQ4_XS GGUF LIME runs>]")
@@ -143,9 +145,11 @@ def main():
             per.append(L * (depth * enc + head) + att + head_n * 2 * L * L * d)
         add(name, os.path.getsize(g), n_params, per)
 
-    if a.metasequoia:
+    for folder, prefix in ((a.metasequoia, "metasequoia-rerank-"), (a.metasequoia_v2, "metasequoia-rerank-v2-")):
+        if not folder:
+            continue
         for size in ("8x448", "6x256"):
-            c = json.load(open(os.path.join(a.metasequoia, f"rerank-{size}.model.json"), encoding="utf-8"))
+            c = json.load(open(os.path.join(folder, f"rerank-{size}.model.json"), encoding="utf-8"))
             cc = c["config"]
             d, n, V = cc["n_embd"], cc["n_layer"], cc["vocab"]
             W = n * 12 * d * d
@@ -156,7 +160,7 @@ def main():
                 nodes = {c_[:t] for c_ in cands for t in range(1, len(c_))}  # its runtime shares the candidates' prefixes
                 per.append(causal(ctx, [(len(nodes), 0)], W, d, n, 0)
                            + sum(map(len, cands)) * (d if cc["self_normalized"] else V * d))
-            add(f"metasequoia-rerank-{size}", os.path.getsize(os.path.join(a.metasequoia, f"rerank-{size}.ort")), params, per)
+            add(f"{prefix}{size}", os.path.getsize(os.path.join(folder, f"rerank-{size}.ort")), params, per)
 
     if a.youmo:
         from youmo import ROOM, clean, load_safetensors
@@ -350,6 +354,36 @@ def main():
                     head = min(1 + len(r["context"]), ctxlen - max(map(len, cands)) - 1)
                     per.append(causal(head, [(len(c), len(c)) for c in cands], W, d, n, V * d))
             add(name, len(raw), V * d + ctxlen * d + n * (12 * d * d + 13 * d) + 2 * d, per)
+
+    if a.wowtype:
+        from wowtype_nnlm import D, LAYERS, MAX_POS, WowtypeNnlm
+        m = WowtypeNnlm(a.wowtype)
+        d, n, V = D, LAYERS, m.v  # feed-forward 4d, so 12 d^2 per layer as the GPT-2s above
+        per = [causal(len(m.context_tokens(r["context"])), [(len(c) - 1, len(c)) for c in cands], n * 12 * d * d, d, n, V * d)
+               for r, cands in zip(rows, whole)]
+        add("wowtype-nnlm", os.path.getsize(a.wowtype), V * d + MAX_POS * d + n * (12 * d * d + 13 * d) + 2 * d, per)
+
+    if a.llm_rerank:
+        folder, gguf = a.llm_rerank.split(",")
+        from gguf import GGUFReader
+        from transformers import AutoTokenizer
+        from llm_rerank import MAX_TOKENS
+        rd = GGUFReader(os.path.join(folder, gguf))
+        shapes = {x.name: [int(s) for s in x.shape] for x in rd.tensors}
+        lm = sum(math.prod(s) for s in shapes.values())  # the output layer is tied to token_embd (no output.weight)
+        d, V = shapes["token_embd.weight"]
+        field = lambda k: int(rd.fields["qwen3." + k].parts[-1][0])
+        qd, layers = field("attention.head_count") * field("attention.key_length"), field("block_count")
+        tok = AutoTokenizer.from_pretrained(folder, gguf_file=gguf)
+        per = []
+        for r, cands in zip(rows, whole):
+            ctx = tok("".join(r["context"].split()))["input_ids"][-MAX_TOKENS:]
+            if not ctx:  # no context: it does not rerank
+                per.append(0)
+                continue
+            k = [min(3, len(tok(c)["input_ids"])) for c in cands]  # only the first three tokens count
+            per.append(causal(len(ctx), [(x - 1, x) for x in k], lm - d * V, qd, layers, V * d))
+        add("llm-rerank-qwen3-0.6b-base", os.path.getsize(os.path.join(folder, gguf)), lm, per)
 
     path = os.path.join(HERE, "cost.json")
     old = json.load(open(path, encoding="utf-8")) if os.path.exists(path) else {}

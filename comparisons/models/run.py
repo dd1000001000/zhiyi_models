@@ -14,9 +14,11 @@ Every model gets the same rows and the same candidates; the pick is the best-sco
                 --rime-ai-ime <Qwen3.5-0.8B>,<adapter_v1> --fujik0 <Qwen3.5-0.8B> --lime <Qwen3-0.6B>
                 --cnmbert <CNMBert folder> --qingjian <qj-score exe>,<tongbian .qjm>,<zhiwei .qjm>
                 --zhizi <shunshou-zhizi-30m folder>
+                --metasequoia-v2 <rerank-v2 folder> --wowtype nnlm.bin --llm-rerank <folder>,Qwen3-0.6B-Base-Q4_K_M.gguf
 Give only the models to run; score files already in scores/ are reused (remove one to score it again), and every
 score file there is counted in results.json. Zhiyi's graphs run on DirectML (onnxruntime-directml, --cpu for CPU);
-the PyTorch models on CUDA; MetasequoiaIME and Zhizi on CPU.
+the PyTorch models on CUDA (rime-llm-rerank's GGUF dequantized by transformers); MetasequoiaIME, Zhizi and WowType
+on CPU.
 """
 import argparse
 import json
@@ -68,6 +70,25 @@ def scorers(a):
                 m = Metasequoia(a.metasequoia, "rerank-" + size)
                 return whole_only(rows, m.score_rows, lambda r: (r["context"], cands(r)))
             out["metasequoia-rerank-" + size] = meta
+    if a.metasequoia_v2:  # rerank-v2: the same format and runtime as rerank-v1
+        for size in ("8x448", "6x256"):
+            def meta2(rows, size=size):
+                from metasequoia import Metasequoia
+                m = Metasequoia(a.metasequoia_v2, "rerank-" + size)
+                return whole_only(rows, m.score_rows, lambda r: (r["context"], cands(r)))
+            out["metasequoia-rerank-v2-" + size] = meta2
+    if a.wowtype:
+        def wowtype(rows):
+            from wowtype_nnlm import WowtypeNnlm
+            m = WowtypeNnlm(a.wowtype)
+            return whole_only(rows, lambda items: [m.score(c, cs) for c, cs in items], lambda r: (r["context"], cands(r)))
+        out["wowtype-nnlm"] = wowtype
+    if a.llm_rerank:
+        def llm(rows):
+            from llm_rerank import LlmRerank
+            m = LlmRerank(*a.llm_rerank.split(","))
+            return whole_only(rows, lambda items: [m.score(c, cs) for c, cs in items], lambda r: (r["context"], cands(r)))
+        out["llm-rerank-qwen3-0.6b-base"] = llm
     if a.youmo:
         def youmo(rows):
             from youmo import Youmo
@@ -169,11 +190,12 @@ def main():
     p.add_argument("--v5", help="neutral-v5.jsonl (the hard set)")
     p.add_argument("--zhiyi", action="append", help="name=folder of an unpacked int8 release zip (repeatable)")
     for k in ("metasequoia", "youmo", "chaoinput", "qwen", "pinyingpt", "pinyingpt-typed", "gpt2-zh-21k",
-              "metaseq-v1-4m", "metaseq-v1-25m", "lime", "cnmbert", "zhizi"):
+              "metaseq-v1-4m", "metaseq-v1-25m", "lime", "cnmbert", "zhizi", "metasequoia-v2", "wowtype"):
         p.add_argument("--" + k)
     p.add_argument("--rime-ai-ime", help="<Qwen3.5-0.8B folder>,<adapter_v1 folder>")
     p.add_argument("--fujik0", help="<Qwen3.5-0.8B folder>")
     p.add_argument("--qingjian", help="<qj-score exe>,<hanzhang-tongbian-small.qjm>,<hanzhang-zhiwei-small.qjm>")
+    p.add_argument("--llm-rerank", help="<folder>,<Qwen3-0.6B-Base-Q4_K_M.gguf in it> (zhanghaozhecn/rime-llm-rerank)")
     p.add_argument("--cpu", action="store_true", help="Zhiyi's graphs on the CPU instead of DirectML")
     p.add_argument("--context_chars", type=int, help="Zhiyi: the context's last N characters only (named <name>-ctxN)")
     a = p.parse_args()

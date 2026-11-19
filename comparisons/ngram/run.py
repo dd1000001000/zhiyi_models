@@ -8,10 +8,13 @@ scores/<n-gram>_neutral-<set>.jsonl ({"id", "scores"}, null for candidates not c
                 --rime-gram zh-hans-t-essay-bgw.gram --rime-essay essay.txt --rime-opencc <OpenCC data/dictionary> --qingjian-lm <qj-score exe>,lm.qj
                 --ximegboard-gram XimeGboard.gram --ximegboard-dict <its APK's assets/rime/cn_dicts>
                 --windinput-gram wanxiang-mini.gram --windinput-dict <its package's data/schemas/pinyin/cn_dicts>
+                --wowtype-lm words.lm --wowtype-lexicon lexicon.tsv
 XimeGboard (Murchey/Xime-Gboardlike): its octagram with the dictionary of its default schema rime_ice (the tables
 rime_ice.dict.yaml imports), librime-octagram's default parameters (the schema sets none), contextual_suggestions on.
 WindInput (huanfeng/WindInput): its grammar with its rime_frost dictionary at its default weight 0.5 (on by default on
 mobile, off on the desktop), scored as its engine does (windinput_gram.py); it takes no text before the caret.
+WowType (Gloridust/WowType): its word model words.lm with its rime-ice lexicon.tsv, scored as its beam search scores a
+path (wowtype_words.py); its beam starts at <s> (wowtype-noctx); wowtype-ctx starts from the context's last word.
 Score files already in scores/ are reused; remove one to score it again.
 """
 import argparse
@@ -73,6 +76,12 @@ def scorers(a):
         from windinput_gram import WindGram
         return WindGram(a.windinput_gram, a.windinput_dict, weight=0.5).score
 
+    def wowtype(ctx):
+        def load():
+            from wowtype_words import WowtypeWords
+            return WowtypeWords(a.wowtype_lm, a.wowtype_lexicon, ctx=ctx).score
+        return load
+
     def qingjian():
         import json
         import subprocess
@@ -88,7 +97,8 @@ def scorers(a):
     for name, ok, fn in (("libime-lm-sc", a.libime, arpa(a.libime)), ("opengram-sunpinyin", a.opengram, arpa(a.opengram)),
                          ("libpinyin-model20", a.libpinyin, libpinyin), ("rime-octagram-hans", a.rime_gram, rime),
                          ("qingjian-lm", a.qingjian_lm, qingjian), ("ximegboard-octagram", a.ximegboard_gram, ximegboard),
-                         ("windinput-gram", a.windinput_gram, windinput)):
+                         ("windinput-gram", a.windinput_gram, windinput), ("wowtype-noctx", a.wowtype_lm, wowtype(False)),
+                         ("wowtype-ctx", a.wowtype_lm, wowtype(True))):
         if ok:
             out[name] = fn
     return out
@@ -118,7 +128,7 @@ def main():
     p = argparse.ArgumentParser()
     for k in ("v2", "v3", "v4", "zhiyi", "youmo", "cyime", "wanxiang-gram", "wanxiang-dict", "libime", "opengram", "libpinyin",
               "rime-gram", "rime-essay", "rime-opencc", "qingjian-lm", "ximegboard-gram", "ximegboard-dict", "windinput-gram",
-              "windinput-dict"):
+              "windinput-dict", "wowtype-lm", "wowtype-lexicon"):
         p.add_argument("--" + k)
     a = p.parse_args()
     os.makedirs(os.path.join(HERE, "scores"), exist_ok=True)
