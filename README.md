@@ -10,6 +10,7 @@ n-gram，以及学习模式里翻译候选的离线翻译模型。模型文件�
 
 | 模型 | 内容 | 知意输入法 | 下载 |
 | --- | --- | --- | --- |
+| zh-lite-next-preview-1120 | zh-lite-next-preview-1116 的下一版：数据多了很多，续写能出单字（是、我、的），解码器加了记忆表（乘积量化后 16 MB）；续写、补全、中间补全和选词都更好（预览） | 未接入 | [model-zh-lite-next-preview-1120](https://github.com/dd1000001000/zhiyi_models/releases/tag/model-zh-lite-next-preview-1120) |
 | zh-lite-next-preview-1116 | zh-lite-next-preview 加中间补全：光标在文字中间时，同时看光标前后的文字，猜中间的词（预览）；文件和原来一样 | 未接入 | [model-zh-lite-next-preview-1116](https://github.com/dd1000001000/zhiyi_models/releases/tag/model-zh-lite-next-preview-1116) |
 | zhen-mini-next-preview-1116 | zhen-mini-next-preview 加中间补全（约 10 MB，预览）；文件和原来一样 | 未接入 | [model-zhen-mini-next-preview-1116](https://github.com/dd1000001000/zhiyi_models/releases/tag/model-zhen-mini-next-preview-1116) |
 | ml-flash-next-preview-1114 | ML-Flash-1103 加六种语言续写（简体、英文、繁体、日、韩、越文：猜下一个词，补全打了一半的词；预览）；8 层，续写解码器 4 层，和选词共用一张词表（ONNX 单文件 94 MB，瘦身版 64 MB） | 1.7.0 起的默认模型（选词和联想） | [model-ml-flash-next-preview-1114](https://github.com/dd1000001000/zhiyi_models/releases/tag/model-ml-flash-next-preview-1114) |
@@ -48,11 +49,11 @@ ng1017+1.4V2-Long-L18 在 1.4V2-Long-L18 上加了一个词语 n-gram（三元�
 
 知意 1.4V2-Long-L12（[Release model-zhen-long-l12](https://github.com/dd1000001000/zhiyi_models/releases/tag/model-zhen-long-l12)，Apache-2.0，含 safetensors 版）是 1.5.12–1.5.18 的默认模型，1.4V2 只保留 12 层编码器（22 层 → 12 层）的新模型。选词用微调过的 Qwen3.5-9B 老师在约 377 万条数据上蒸馏：1.4V2-Long-L18 的约 170 万条之外，新加约 172 万条 SkyPile、LCCC、C4、SODA 的文本，和约 35 万条 [FineWeb](https://huggingface.co/datasets/HuggingFaceFW/fineweb)、[FineWeb-2](https://huggingface.co/datasets/HuggingFaceFW/fineweb-2)（ODC-By 1.0）的近年网页，中英文约 3:1。组句头由另一个微调过、按字写出所打汉字的 Qwen3.5-9B 老师蒸馏，用了约 431 万条组句数据，其中 220 万条带老师打分。加上 ng1017 后在输入法引擎里端到端，它和 ng1017+1.4V2-Long-L18 打平：中文词和两个词 87.7%（87.6%），长句 74.9%（74.5%），英文 89.5%（90.2%），全打声母 76.3%（77.7%），英文只打前几个字母 75.7%（77.3%），差别都在抽样误差之内；CPU 上一页 10.4 ms（14.7 ms），快约三成，模型文件 84 MB（96 MB）。1.5.12–1.5.18 输入法带的是 ng1017+1.4V2-Long-L12。
 
-<img src="media/choice2.zh-CN.svg" alt="新选词测试集：(a) 中文词和两个词 (b) 中文长句 (c) 英文单词 (d) 中文全打声母 (e) 英文只打前几个字母 (f) CPU 每页耗时；只按词频、原始 Laya、ng1017+1.4V2-Long-L12、ng1017+ML-pumpkin-1026、ng1017+ML-Flash-1031、ng1017+ML-Flash-1103、ng1017+ML-pumpkin-1103 与 ng1017+ml-flash-next-preview-1114" width="100%">
+<img src="media/choice2.zh-CN.svg" alt="新选词测试集：(a) 中文词和两个词 (b) 中文长句 (c) 英文单词 (d) 中文全打声母 (e) 英文只打前几个字母 (f) CPU 每页耗时；只按词频、原始 Laya、ng1017+ML-pumpkin-1103、ng1017+ml-flash-next-preview-1114 与 ng1017+zh-lite-next-preview-1120（较早的版本已从图中去掉，成绩见各自的 Release）" width="100%">
 
 多语言预览版 [知意 1.4V2-ML-Preview-1024](https://github.com/dd1000001000/zhiyi_models/releases/tag/model-ml-preview-1024)在 Long-L12 上加了繁体中文、日文、韩文、越南文的选词和繁体、日文的组句；第二版 [知意 ML-pumpkin-1026](https://github.com/dd1000001000/zhiyi_models/releases/tag/model-ml-pumpkin-1026) 补了繁体组句和韩文的数据，是 1.6.0–1.6.3 的默认模型（用它的简体和英文）；8 层的 [知意 ML-Flash-1031](https://github.com/dd1000001000/zhiyi_models/releases/tag/model-ml-flash-1031) 可以缓存上文，每次按键的 CPU 耗时约为 pumpkin 的三分之一（未接入输入法）。1.6.4–1.6.7 输入法的默认模型是 8 层的 [知意 ML-Flash-1103](https://github.com/dd1000001000/zhiyi_models/releases/tag/model-ml-flash-1103)，在 CPU 上缓存上文；1.7.0 起换成在它上面加了续写的 [知意 ml-flash-next-preview-1114](https://github.com/dd1000001000/zhiyi_models/releases/tag/model-ml-flash-next-preview-1114)（选词和组句不变，多了联想）。繁体和日文的词语 n-gram 见 [ngram-ml-1024](https://github.com/dd1000001000/zhiyi_models/releases/tag/ngram-ml-1024)：
 
-<img src="media/ml_pumpkin.zh-CN.svg" alt="知意 ML-pumpkin-1026、ML-Flash-1031、ML-Flash-1103、ML-pumpkin-1103 与 1.4V2-ML-Preview-1024 各语言的短句（选词）和长句（整句）正确率：简体中文、英文、繁体中文、日文、韩文、越南文" width="100%">
+<img src="media/ml_pumpkin.zh-CN.svg" alt="知意 ML-Flash-1103 与 ML-pumpkin-1103 各语言的短句（选词）和长句（整句）正确率：简体中文、英文、繁体中文、日文、韩文、越南文" width="100%">
 
 
 ## 续写模型
@@ -63,9 +64,11 @@ ng1017+1.4V2-Long-L18 在 1.4V2-Long-L18 上加了一个词语 n-gram（三元�
 
 [知意 zh-lite-next-preview-1116](https://github.com/dd1000001000/zhiyi_models/releases/tag/model-zh-lite-next-preview-1116) 和 [zhen-mini-next-preview-1116](https://github.com/dd1000001000/zhiyi_models/releases/tag/model-zhen-mini-next-preview-1116) 是这两个模型加了**中间补全**的版本，给手机上改字时用：光标在文字中间时，模型同时读光标后面的文字（最多 32 个词元，接在上文后面、用 `<mask>` 隔开），猜中间该填的词，比如“你的作业｜了吗”。训练从原模型接着训两轮，一半数据带光标后的文字；中间补全的标签是 Qwen3-1.7B-Base 只看上文给出的词，再按“词 + 光标后文字”重新打分。图 (d)(e) 是中间补全的成绩；普通续写、补全打了一半的词、选词和中立测试集都和原模型持平。文件、大小和用法都和原来一样，只是权重换了。未接入输入法。
 
+[知意 zh-lite-next-preview-1120](https://github.com/dd1000001000/zhiyi_models/releases/tag/model-zh-lite-next-preview-1120) 是 1116 的下一版，编码器和解码器大小不变，训练数据多了很多（选词 5260 万行，续写 8200 万行），有三处变化。**续写能出单字**：以前只出两字以上的词，现在“是”“我”“的”这类单字也能出（网页文字里约四成的词是单字），调用时可以设最短字数（设成 2 和以前一样只出词）；图 (f) 是含单字的成绩，单字第一个就对 31.4%。**解码器加了记忆表**：把光标前后的几个词元哈希到一张 100 万行的表里，查出来的 4 行作为额外的记忆交给解码器，相当于一个跟着模型一起训练的 n-gram；把表清零各项会掉 2.2 到 4.6 分，训练里见得越多的上下文提升越大。**表用乘积量化存**：每行 16 字节，整张表 16 MB（原来 256 MB），测试集上和原表相差不超过 0.2 分。图 (a)–(f) 里它的续写、补全、中间补全都明显高于 1116，外加的 n-gram 在英文上已不再有用；选词和中立测试集也略有提高。手机用的 4 位瘦身版 59 MB（1116 为 43 MB，多出的是记忆表）。未接入输入法。
+
 [知意 ml-flash-next-preview-1114](https://github.com/dd1000001000/zhiyi_models/releases/tag/model-ml-flash-next-preview-1114) 把续写做到了 ML-Flash-1103 的全部六种语言：简体、英文、繁体中文、日文、韩文、越南文都能猜下一个词，也都能补全打了一半的词（中日文按字，韩、越、英文按词元）。续写解码器读的是选词时本来就要算、会缓存的那段上文，和选词共用一张词表，所以整个模型放在一个 ONNX 文件里（94 MB，瘦身版 64 MB）。新语言的软标签来自 Qwen3-4B-Base，简体和英文沿用 Qwen3-1.7B-Base 的；训练时每一步都混入 Flash 自己的选词和组句数据，选词、组句和中立测试集与 ML-Flash-1103 基本持平。图里只有简体和英文，新语言的成绩见它的发布说明。1.7.0 起是知意输入法的默认模型（瘦身版），选词之外还用来做联想：上屏一个词后在光标处列出接下来可能打的词（简体中文和英文）。
 
-<img src="media/next_word.zh-CN.svg" alt="续写：(a) 中文下一个词 (b) 英文下一个词 (c) 中文补全打了一半的词；(d) 中文中间补全 (e) 英文中间补全；只用 n-gram、zh-lite-next-preview、n-gram+zh-lite-next-preview、zhen-mini-next-preview、n-gram+zhen-mini-next-preview、ml-flash-next-preview-1114、n-gram+ml-flash-next-preview-1114、zh-lite-next-preview-1116、zhen-mini-next-preview-1116 与老师 Qwen3-1.7B-Base 的第一个就对和前 5 个里有的比例" width="100%">
+<img src="media/next_word.zh-CN.svg" alt="续写：(a) 中文下一个词 (b) 英文下一个词 (c) 中文补全打了一半的词；(d) 中文中间补全 (e) 英文中间补全 (f) 中文下一个词含单字；只用 n-gram、zhen-mini-next-preview、n-gram+zhen-mini-next-preview、ml-flash-next-preview-1114、n-gram+ml-flash-next-preview-1114、zh-lite-next-preview-1120、n-gram+zh-lite-next-preview-1120、zh-lite-next-preview-1116、zhen-mini-next-preview-1116 与老师 Qwen3-1.7B-Base 的第一个就对和前 5 个里有的比例" width="100%">
 
 ## 离线翻译模型
 

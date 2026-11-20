@@ -113,5 +113,35 @@
   "file_mb": 12.194898,
   "params": 17622016,
   "macs_per_row": 739201239.7319984
+ },
+ "metasequoia-rerank-v2-8x448": {
+  "file_mb": 30.83496,
+  "params": 24933888,
+  "macs_per_row": 1432899717.1752021
+ },
+ "metasequoia-rerank-v2-6x256": {
+  "file_mb": 8.220336,
+  "params": 7949824,
+  "macs_per_row": 333355441.2629958
+ },
+ "wowtype-nnlm": {
+  "file_mb": 8.640942,
+  "params": 4292352,
+  "macs_per_row": 93074102.06854062
+ },
+ "llm-rerank-qwen3-0.6b-base": {
+  "file_mb": 396.70464,
+  "params": 596049920,
+  "macs_per_row": 12402240525.011936
+ },
+ "zhiyi-zh-lite-next-preview-1120": {
+  "file_mb": 51.445866,
+  "params": 49289984,
+  "macs_per_row": 738290988.161725
+ },
+ "zhiyi-zhen-mini-next-preview-1116": {
+  "file_mb": 12.194898,
+  "params": 17622016,
+  "macs_per_row": 739201239.7319984
  }
 }

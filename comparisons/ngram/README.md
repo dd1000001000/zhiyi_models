@@ -1,6 +1,6 @@
-# 词语 n-gram 对比：知意、幽默、libime、万象、Rime、XimeGboard、清风、青简、libpinyin、sunpinyin、CyIME
+# 词语 n-gram 对比：知意、幽默、libime、万象、Rime、XimeGboard、清风、WowType、青简、libpinyin、sunpinyin、CyIME
 
-各输入法的词语 n-gram 在[中立选词测试集 v2](../../benchmarks/neutral-v2/)、[v3](../../benchmarks/neutral-v3/)（网页）和 [v4](../../benchmarks/neutral-v4/)（聊天）上的首选准确率，只用 n-gram，不用任何神经模型。全部在 CPU 上单进程跑，每个 n-gram 跑一套题只要几秒到几分钟。测试日期：2026-11-03（XimeGboard 2026-11-04，清风 2026-11-05；各家的 v4 2026-11-13）。
+各输入法的词语 n-gram 在[中立选词测试集 v2](../../benchmarks/neutral-v2/)、[v3](../../benchmarks/neutral-v3/)（网页）和 [v4](../../benchmarks/neutral-v4/)（聊天）上的首选准确率，只用 n-gram，不用任何神经模型。全部在 CPU 上单进程跑，每个 n-gram 跑一套题只要几秒到几分钟。测试日期：2026-11-03（XimeGboard 2026-11-04，清风 2026-11-05；各家的 v4 2026-11-13；WowType 2026-11-19）。
 
 > **说明**：测试结果仅供参考。除青简（调用青简自己的代码）外，各家的 n-gram 都是按其公开的文件格式自己实现读取和打分，没有运行各家的程序，难免与原作者的实际用法有出入；测试集、打分方式和题目来源的偏差见下文。如果发现任何问题（读取或打分有误、版本不对、对哪一家不公平等），请到 [Issues](https://github.com/dd1000001000/zhiyi_models/issues) 提出，我们会核对并更正。
 >
@@ -24,6 +24,8 @@
 | XimeGboard 词库 | APK `XimeGboard-1.0.9-arm64-v8a.apk`（Release `V1.0.9`）内置的雾凇拼音（rime_ice，它的默认拼音方案），`rime_ice.dict.yaml` 导入的 5 个：`cn_dicts/` 的 8105、base、ext、tencent、others | 46 MB（文本） | APK `3bfd6acd…cd75` | 同上；词库来自 [iDvel/rime-ice](https://github.com/iDvel/rime-ice) | GPL-3.0 |
 | 清风输入法 万象精简语法 | `wanxiang-mini.gram`（Release `v0.130.1` 的 `WindInput-Portable-0.130.1.zip` 里 `data/schemas/pinyin/grammar/`）：作者用对话语料和维基从万象 LTS 语法里挑出的子集 | 5.5 MB | `c8580193…5147`（包 `9805e8bd…1ccb`） | [huanfeng/WindInput](https://github.com/huanfeng/WindInput)（代码 tag `v0.130.1`） | CC BY 4.0（万象子集）；程序 GPL-3.0 |
 | 清风输入法 白霜词库 | 同一个包里拼音方案的主词库 `rime_frost.dict.yaml` 导入的 6 个：`cn_dicts/` 的 8105、41448、base、ext、others、corrections（随包的扩展词库出厂不勾选，不用） | 18 MB（文本） | 同上 | 词库来自 [gaboolic/rime-frost](https://github.com/gaboolic/rime-frost) | GPL-3.0 |
+| WowType 词级模型 | `words.lm`，Release `lm-2026.11.09` 的 `words.lm.xz` 解压（WTLM 格式）：34.6 万词、400 万个「前词 → 后词」搭配，存的是 ln P(后词 \| 前词) − ln P(后词)（上限 6），语料 LCCC + 中文维基 | 38 MB | `42cb7c4a…5dbe` | [Gloridust/WowType](https://github.com/Gloridust/WowType)（代码 `bb2a04f`） | CC BY-SA 4.0 |
+| WowType 词库 | 同一仓库 Release `v0.6.0` 的 `wowtype-data-rime-ice-2026.11.11.8.tar.gz` 里的 `lexicon.tsv`：雾凇拼音（rime-ice `927e1cf`）的全部词表转成「拼音、词、词频」，并合入它的热词表和 Tatoeba 词频 | 29 MB（文本） | `6b4c7393…5cac`（包 `b85d7c67…5640`） | 同左；词库来自 [iDvel/rime-ice](https://github.com/iDvel/rime-ice) | GPL-3.0 |
 | Rime 词频 essay | [rime/rime-essay](https://github.com/rime/rime-essay)（`054920d`）的 `essay.txt`（繁体，经 [OpenCC](https://github.com/BYVoid/OpenCC) `fae2a0a` 的 `TSPhrases.txt` / `TSCharacters.txt` 转简体） | 5.9 MB | `3e8512eb…4ffb` | 同左 | LGPL-3.0 |
 | 青简 二元模型 | [qingjian-team/qingjian](https://github.com/qingjian-team/qingjian) Release `data-v9`（2026-10-30）里的 `data/generated/lm.qj`，词语二元，插值平滑（139,403 词 / 4,914,205 二元） | 45 MB | `2a864979…050d`（包 `bc8dd7f4…694b`） | 同左；代码 `97dde30` | GPL-3.0-or-later |
 | libpinyin model20 | `model20.text.tar.gz`（libpinyin 构建时下载的模型数据）：`interpolation2.text` 插值二元模型和词表 | 83 MB（`interpolation2.text`） | `59c68e89…1155`（压缩包） | [libpinyin/libpinyin](https://github.com/libpinyin/libpinyin)，SourceForge `libpinyin/models` | GPL-3.0（仓库） |
@@ -49,6 +51,8 @@
 | Rime 官方语法 | 上文最后一行作前文（它的 `grammar.yaml` 打开 `contextual_suggestions`） | 按 essay 词频的最优路径 | 同上的 Rime 组句算法，词频取 essay，参数用 librime-octagram 的缺省值（长度 3–4，搭配 −12，非搭配 −12，弱搭配 −24，句尾 −18） |
 | XimeGboard | 上文最后一行作前文（它启用语法时给方案写入 `contextual_suggestions: true`） | 按雾凇词库的最优路径 | 同上的 Rime 组句算法，词频取雾凇的 5 个词表（腾讯词表按它表头的 `columns` 取 weight 列），雾凇方案没有设语法参数，所以用 librime-octagram 的缺省值 |
 | 清风 | 不给（它的引擎不取光标前的文字，句首的词没有前文） | 照它的 `viterbi.rs`：每个位置留 7 条线、按末词去重 | 照它 Rust 引擎的 `lattice.rs` / `octagram.rs`：每个词 ln(词频 / 242,154,693)，单字 −3（它表里的虚词按虚词读音时改为 +2 且免每词罚），多字实词按词频加成、以“了的着过得地”结尾 −1，每词 −3；语法分 = 0.5 ×（最佳搭配 ln(频次) − 8.34），前文取路径上前两个词的末尾 ≤3 字、词取开头 ≤3 字，不足 2 字且非整串匹配 −12，句尾 −6；0.5 是它出厂配置的权重（手机默认开，桌面默认关、勾选即用） |
+| WowType，不给上文 | 不给（它的束搜索从句首 `<s>` 起，不取光标前的文字） | 它词库里的词做最优切分，词最长 6 字；这里用精确的动态规划代替它宽 20 的束搜索 | 照它 Rust 引擎的 `beam.rs` / `wordlm.rs`：每个词 ln(词频 / 全部词条词频之和) + 0.85 × 词级模型分；词级模型分 = ln P(词 \| 前词) − ln P(词)，没存的搭配用前词的回退分，模型里没有的词不低于 −1.5；词库里没有的字罚 18、不查词级模型；一个词多个读音时取最大词频 |
+| WowType，给上文 | 上文最后一行末尾的词（词库里最长的匹配）作前词 | 同上 | 同上 |
 
 需要注意的偏差：
 
@@ -59,8 +63,9 @@
 - CyIME 的语料是聊天和字幕，v2、v3 的网页题对它是领域外。错题里常见 js 选成“就是”而不是“技术”、yf 选成“衣服”而不是“研发”。CyIME 如果改用上文最后 12 字、不从句首起，结果几乎一样（v2 68.7，v3 71.9）。
 - XimeGboard 的语法对雾凇词库本身加分不多：只用雾凇词频、不查语法时 v2 74.9、v3 77.3，加上语法后 v2 74.2（−0.7）、v3 77.7（+0.4）。它的发布说明写的训练语料是作者私有的书籍（诺贝尔文学奖作品、二十四史译文、科学元典、现代小说等），与网页题领域不同。
 - 清风的语法同样加分不多：只用白霜词频、不查语法时（它桌面版的默认）v2 72.3、v3 75.7，加上语法后 v2 72.7（+0.4）、v3 76.2（+0.5）。它的语法是从万象语法里按对话语料挑出来的，体积约为万象的 1/76；它不取光标前的文字，所以和“万象，不给上文”一栏可比。一个词多个读音时取最大词频，虚词判断也按那个读音。
+- **WowType** 的词级模型只存相对一元的加分（词频已由词库给出），必须和它的词库一起用，所以和万象、清风一样按“模型 + 词库”测。它的束搜索每次都从句首 `<s>` 起，而测试题几乎都在句子中间（v2 的 5,211 行里只有 7 行没有上文），句首这一项反而扣分：v2 上只用词频 71.6，加上词级模型（它的默认）68.0，去掉句首那一项 73.7，从上文最后一个词接着算 74.2。它在输入法里还用字级神经模型给前 8 条整句重排（见[模型对比](../models/)），这里只比词级模型。
 - v3 是 2026 年 10 月的网页。万象语法文件 10-26 更新，可能有少量重叠，只会对它有利。
-- v4 是 LCCC-base 的 test 部分（微博对话）。青简的语言模型由中文维基百科和 LCCC 统计而来，CyIME 的语料是 LCCC 和字幕，所以 v4 对这两家是领域内；它们用的若是 LCCC 全集，还可能见过 v4 的句子（我们没有比对）。两家在 v4 上比 v2、v3 高约 10 分（青简 88.0，CyIME 81.1），三套平均分受此影响。
+- v4 是 LCCC-base 的 test 部分（微博对话）。青简的语言模型和 WowType 的词级模型都由中文维基百科和 LCCC 统计而来，CyIME 的语料是 LCCC 和字幕，所以 v4 对这三家是领域内；它们用的若是 LCCC 全集，还可能见过 v4 的句子（我们没有比对）。青简、CyIME 在 v4 上比 v2、v3 高约 10 分（青简 88.0，CyIME 81.1），WowType 高约 5 分，三套平均分受此影响。
 
 ## 结果（首选准确率 %）
 
@@ -75,6 +80,8 @@
 | Rime 官方语法 zh-hans + essay | 77.6 | 78.5 | 80.9 | 79.0 | 83.5 | 49.5 | 71.1 | 77.7 | 82.3 | 80.1 |
 | XimeGboard 语法 + 雾凇词库 | 74.2 | 77.7 | 79.1 | 77.0 | 83.0 | 44.7 | 70.4 | 76.4 | 80.5 | 81.7 |
 | 清风输入法 万象精简语法 + 白霜词库 | 72.7 | 76.2 | 78.3 | 75.7 | 83.0 | 35.4 | 66.4 | 75.5 | 78.8 | 77.7 |
+| WowType 词级模型 + 雾凇词库，给上文 | 74.2 | 75.6 | 79.6 | 76.5 | 81.5 | 38.2 | 68.1 | 74.1 | 80.5 | 79.7 |
+| WowType 词级模型 + 雾凇词库，不给上文（WowType 默认） | 68.0 | 70.7 | 75.6 | 71.4 | 77.7 | 28.3 | 61.2 | 68.3 | 78.9 | 77.2 |
 | 青简 二元模型 lm.qj | 74.0 | 75.6 | **88.0** | 79.2 | 81.4 | 42.7 | 66.8 | 75.4 | 77.8 | 75.2 |
 | libpinyin model20（插值二元） | 74.8 | 77.0 | 68.7 | 73.5 | 81.9 | 50.6 | 69.1 | 77.3 | 77.5 | 75.5 |
 | sunpinyin open-gram 三元 | 70.8 | 72.1 | 74.1 | 72.3 | 77.5 | 38.6 | 64.7 | 71.1 | 75.9 | 74.3 |
@@ -94,14 +101,16 @@
 | Rime 官方语法 zh-hans + essay | 47 MB（0.59） | 1.43M（0.17） | 57（0.71） |
 | XimeGboard 语法 + 雾凇词库 | 72 MB（0.91） | 3.04M（0.36） | 57（0.71） |
 | 清风输入法 万象精简语法 + 白霜词库 | 24 MB（0.30） | 0.76M（0.09） | 61（0.75） |
+| WowType 词级模型 + 雾凇词库，给上文 | 67 MB（0.85） | 5.28M（0.63） | 66（0.82） |
+| WowType 词级模型 + 雾凇词库，不给上文（WowType 默认） | 67 MB（0.85） | 5.28M（0.63） | 66（0.82） |
 | 青简 二元模型 lm.qj | 45 MB（0.57） | 5.05M（0.61） | 134（1.66） |
 | libpinyin model20（插值二元） | 83 MB（1.06） | 1.99M（0.24） | 138（1.71） |
 | sunpinyin open-gram 三元 | 181 MB（2.29） | 3.57M（0.43） | 69（0.86） |
 | CyIME 九键词组模型 v3 | 213 MB（2.69） | 29.20M（3.50） | 66（0.82） |
 
-- 文件大小：各家发布或安装的文件。幽默为解压后的 `lm.arpa` 文本（它的发布包是 362 MB 的 `lm.tar.zst`），libime 为它编好安装的 `sc.lm`（kenlm 二进制），sunpinyin 为 `lm_sc.3gm.arpa` 文本，libpinyin 为 `interpolation2.text`，万象为语法文件加默认导入的 7 个词库的文本，Rime 为语法文件加 `essay.txt`，XimeGboard 为语法文件加雾凇 5 个词表的文本，清风为语法文件加白霜 6 个词表的文本。
-- 条目数：一元、二元、三元条目之和；万象、Rime、XimeGboard、清风为语法里的条目加词条（`cost.py` 从文件里数）。
-- 查询次数：给 v3 一行的整串候选打分时查概率的次数，按计分行平均。三元查询算一次（回退在内）；万象、Rime、XimeGboard、清风算语法查询加词频查询（万象给不给上文次数相同，不给上文时语法查询只查句尾）；青简、libpinyin 是二元模型，切词时每个词要对上一个词的每种可能各查一次，所以次数多。ng1017 和幽默用同一份代码、同样的切词，所以次数相同。
+- 文件大小：各家发布或安装的文件。幽默为解压后的 `lm.arpa` 文本（它的发布包是 362 MB 的 `lm.tar.zst`），libime 为它编好安装的 `sc.lm`（kenlm 二进制），sunpinyin 为 `lm_sc.3gm.arpa` 文本，libpinyin 为 `interpolation2.text`，万象为语法文件加默认导入的 7 个词库的文本，Rime 为语法文件加 `essay.txt`，XimeGboard 为语法文件加雾凇 5 个词表的文本，清风为语法文件加白霜 6 个词表的文本，WowType 为 `words.lm` 加 `lexicon.tsv` 文本。
+- 条目数：一元、二元、三元条目之和；万象、Rime、XimeGboard、清风为语法里的条目加词条，WowType 为词级模型的词和搭配加词库词条（`cost.py` 从文件里数）。
+- 查询次数：给 v3 一行的整串候选打分时查概率的次数，按计分行平均。三元查询算一次（回退在内）；万象、Rime、XimeGboard、清风算语法查询加词频查询（万象给不给上文次数相同，不给上文时语法查询只查句尾）；WowType 算词级模型查询加词频查询；青简、libpinyin 是二元模型，切词时每个词要对上一个词的每种可能各查一次，所以次数多。ng1017 和幽默用同一份代码、同样的切词，所以次数相同。
 
 ## 复现
 
@@ -112,14 +121,14 @@ python opengram_arpa.py lm_sc.3gm.arpa lm_sc.3gm.std.arpa
 ```
 
 ```bash
-python run.py --v2 neutral-v2.jsonl --v3 neutral-v3.jsonl --v4 neutral-v4.jsonl --zhiyi zh.ngram --youmo lm.arpa --cyime t9_ngram-v3-ls-tri-c3.lm --wanxiang-gram wanxiang-lts-zh-hans.gram --wanxiang-dict dicts/dicts --libime lm_sc.arpa --opengram lm_sc.3gm.std.arpa --libpinyin model20 --rime-gram zh-hans-t-essay-bgw.gram --rime-essay essay.txt --rime-opencc OpenCC/data/dictionary --qingjian-lm qj-score.exe,lm.qj --ximegboard-gram XimeGboard.gram --ximegboard-dict apk/assets/rime/cn_dicts --windinput-gram wanxiang-mini.gram --windinput-dict WindInput-0.130.1/data/schemas/pinyin/cn_dicts
+python run.py --v2 neutral-v2.jsonl --v3 neutral-v3.jsonl --v4 neutral-v4.jsonl --zhiyi zh.ngram --youmo lm.arpa --cyime t9_ngram-v3-ls-tri-c3.lm --wanxiang-gram wanxiang-lts-zh-hans.gram --wanxiang-dict dicts/dicts --libime lm_sc.arpa --opengram lm_sc.3gm.std.arpa --libpinyin model20 --rime-gram zh-hans-t-essay-bgw.gram --rime-essay essay.txt --rime-opencc OpenCC/data/dictionary --qingjian-lm qj-score.exe,lm.qj --ximegboard-gram XimeGboard.gram --ximegboard-dict apk/assets/rime/cn_dicts --windinput-gram wanxiang-mini.gram --windinput-dict WindInput-0.130.1/data/schemas/pinyin/cn_dicts --wowtype-lm words.lm --wowtype-lexicon lexicon.tsv
 ```
 
 ```bash
-python cost.py --v3 neutral-v3.jsonl --zhiyi zh.ngram --youmo lm.arpa --cyime t9_ngram-v3-ls-tri-c3.lm --wanxiang-gram wanxiang-lts-zh-hans.gram --wanxiang-dict dicts/dicts --libime lm_sc.arpa,sc.lm --opengram lm_sc.3gm.std.arpa,lm_sc.3gm.arpa --libpinyin model20 --rime-gram zh-hans-t-essay-bgw.gram --rime-essay essay.txt --rime-opencc OpenCC/data/dictionary --qingjian-lm qj-score.exe,lm.qj --ximegboard-gram XimeGboard.gram --ximegboard-dict apk/assets/rime/cn_dicts --windinput-gram wanxiang-mini.gram --windinput-dict WindInput-0.130.1/data/schemas/pinyin/cn_dicts
+python cost.py --v3 neutral-v3.jsonl --zhiyi zh.ngram --youmo lm.arpa --cyime t9_ngram-v3-ls-tri-c3.lm --wanxiang-gram wanxiang-lts-zh-hans.gram --wanxiang-dict dicts/dicts --libime lm_sc.arpa,sc.lm --opengram lm_sc.3gm.std.arpa,lm_sc.3gm.arpa --libpinyin model20 --rime-gram zh-hans-t-essay-bgw.gram --rime-essay essay.txt --rime-opencc OpenCC/data/dictionary --qingjian-lm qj-score.exe,lm.qj --ximegboard-gram XimeGboard.gram --ximegboard-dict apk/assets/rime/cn_dicts --windinput-gram wanxiang-mini.gram --windinput-dict WindInput-0.130.1/data/schemas/pinyin/cn_dicts --wowtype-lm words.lm --wowtype-lexicon lexicon.tsv
 ```
 
-XimeGboard 的词库从 APK 里取：APK 是 zip，解出 `assets/rime/` 即可。清风的语法和词库都在它的便携包里。
+XimeGboard 的词库从 APK 里取：APK 是 zip，解出 `assets/rime/` 即可。清风的语法和词库都在它的便携包里。WowType 的 `words.lm` 在 Release `lm-2026.11.09`（xz 压缩），`lexicon.tsv` 在 Release `v0.6.0` 的 `wowtype-data-rime-ice-2026.11.11.8.tar.gz` 里。
 
 ## 文件
 
@@ -135,5 +144,6 @@ XimeGboard 的词库从 APK 里取：APK 是 zip，解出 `assets/rime/` 即可�
 | `cyime_ngram.py` | CyIME 紧凑格式 v3 的读取和打分 |
 | `wanxiang_gram.py` | octagram 语法（Darts 双数组）和词库 / essay 的读取（含 OpenCC 繁转简），Rime 组句打分；万象、Rime 官方语法和 XimeGboard 共用 |
 | `windinput_gram.py` | 清风输入法的组句打分（节点分、7 线 beam、它的 octagram 查询），读语法沿用 `wanxiang_gram.py` |
+| `wowtype_words.py` | WowType 词级模型（`words.lm`）和词库（`lexicon.tsv`）的读取，按它束搜索的路径分做最优切分 |
 | `scores/` | 每个 n-gram 在每套题上的分数，`{"id", "scores"}`，不比的候选为 null |
 | `results.json` | 各组的行数和准确率 |

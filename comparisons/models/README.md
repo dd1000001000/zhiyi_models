@@ -1,6 +1,6 @@
-# 选词 / 组句模型对比：知意、PinyinGPT、Rime 插件、LIME、水杉、青简、幽默、知字、吵吵
+# 选词 / 组句模型对比：知意、PinyinGPT、Rime 插件、LIME、水杉、青简、幽默、知字、WowType、吵吵
 
-各输入法的神经排序模型在[中立选词测试集 v2](../../benchmarks/neutral-v2/)、[v3](../../benchmarks/neutral-v3/)（网页）、[v4](../../benchmarks/neutral-v4/)（聊天）和 [v5](../../benchmarks/neutral-v5/)（困难集）上的首选准确率，只用模型，不用任何引擎和 n-gram；另附一项整句组句测试。Qwen3.5-2B-Base 作为通用语言模型的参考。测试日期：2026-11-03（知意 zh-lite-preview 为 2026-11-04，zh-lite-next-preview 为 2026-11-09，zhen-mini-next-preview 为 2026-11-10）。
+各输入法的神经排序模型在[中立选词测试集 v2](../../benchmarks/neutral-v2/)、[v3](../../benchmarks/neutral-v3/)（网页）、[v4](../../benchmarks/neutral-v4/)（聊天）和 [v5](../../benchmarks/neutral-v5/)（困难集）上的首选准确率，只用模型，不用任何引擎和 n-gram；另附一项整句组句测试。Qwen3.5-2B-Base 作为通用语言模型的参考。测试日期：2026-11-03（知意 zh-lite-preview 为 2026-11-04，zh-lite-next-preview 为 2026-11-09，zhen-mini-next-preview 为 2026-11-10，zh-lite-next-preview-1120 和 zhen-mini-next-preview-1116 为 2026-11-20，水杉 rerank-v2、WowType、rime-llm-rerank（zhanghaozhecn）为 2026-11-19）。
 
 > **说明**：测试结果仅供参考。除知意和青简（调用青简自己的代码）外，各家模型都是按其公开的文件格式和源码自己实现读取和打分，没有运行各家的输入法，难免与原作者的实际用法有出入；测试集、打分方式的偏差见下文。如果发现任何问题（读取或打分有误、版本不对、对哪一家不公平等），请到 [Issues](https://github.com/dd1000001000/zhiyi_models/issues) 提出，我们会核对并更正。
 >
@@ -22,12 +22,17 @@
 | 知意 ML-Flash-1103 | Release [`model-ml-flash-1103`](https://github.com/dd1000001000/zhiyi_models/releases/tag/model-ml-flash-1103) 的 `laya-ml-flash-1103-int8g.zip` 里的 `laya.int8g.onnx`，8 层（同上） | 75 MB | `6396bffe…d7b7` | 本仓库 | Apache-2.0 |
 | 知意 zh-lite-next-preview | Release [`model-zh-lite-next-preview`](https://github.com/dd1000001000/zhiyi_models/releases/tag/model-zh-lite-next-preview) 的 `laya-zh-lite-next-preview-int8g.zip` 里的 `laya.int8g.onnx`，zh-lite-preview 加英文候选并和续写解码器一起训练，8 层、宽 256，紧凑输入格式（2026-11-09 发布） | 51 MB | `29f87302…36e2` | 本仓库 | Apache-2.0 |
 | 知意 zhen-mini-next-preview | Release [`model-zhen-mini-next-preview`](https://github.com/dd1000001000/zhiyi_models/releases/tag/model-zhen-mini-next-preview) 的 `laya-zhen-mini-next-preview-w4.zip` 里的 `laya.mini.w4.onnx`：zh-lite-next-preview 的缩小版，3.2 万词元、续写解码器 2 层、4 位权重，选词和续写在同一个文件里（这里只用选词，先算上文、再算按键）（2026-11-10 发布） | 12 MB | `54b26f1d…7ffc` | 本仓库 | Apache-2.0 |
+| 知意 zh-lite-next-preview-1120 | Release [`model-zh-lite-next-preview-1120`](https://github.com/dd1000001000/zhiyi_models/releases/tag/model-zh-lite-next-preview-1120) 的 `laya-zh-lite-next-preview-1120-int8g.zip` 里的 `laya.int8g.onnx`：zh-lite-next-preview-1116 的下一版，结构和大小与 zh-lite-next-preview 相同，训练数据多了很多（测试时尚未发布） | 51 MB | 见其发布说明 | 本仓库 | Apache-2.0 |
+| 知意 zhen-mini-next-preview-1116 | Release [`model-zhen-mini-next-preview-1116`](https://github.com/dd1000001000/zhiyi_models/releases/tag/model-zhen-mini-next-preview-1116) 的 `laya-zhen-mini-next-preview-1116-w4.zip` 里的 `laya.mini.w4.onnx`：zhen-mini-next-preview 加中间补全的版本，文件和大小相同（这里只用选词） | 12 MB | 见其发布说明 | 本仓库 | Apache-2.0 |
 | 知意 zh-lite-preview | Release [`model-zh-lite-preview`](https://github.com/dd1000001000/zhiyi_models/releases/tag/model-zh-lite-preview) 的 `laya-zh-lite-preview-int8g.zip` 里的 `laya.int8g.onnx`，8 层、宽 256，只选简体、繁体中文候选，紧凑输入格式（2026-11-04 发布） | 26 MB | `64f02409…8a96` | 本仓库 | Apache-2.0 |
 | PinyinGPT-Concat | Hugging Face `aihijo/transformers4ime-pinyingpt-concat` 的 `pytorch_model.bin`：GPT-2 12 层 × 768，词表 21,128 + 443 个拼音 token | 489 MB | `1c5ebb9e…74bb` | Tan 等，ACL 2022（腾讯 AI Lab）；代码 [VisualJoyce/Transformers4IME](https://github.com/VisualJoyce/Transformers4IME) `8f1573e` | CC BY-NC-SA 4.0 |
 | GPT2-zh-21k | Hugging Face `aihijo/gpt2-zh-21k` 的 `model.safetensors`：同一论文里冻结使用的中文 GPT | 421 MB | `645284b6…78c6` | 同上 | CC BY-NC-SA 4.0 |
 | Rime-AI-IME 重排模型 | [oc160/Rime-AI-IME](https://github.com/oc160/Rime-AI-IME)（`aa87a4a`）Release `v0.1.0-model`：Qwen3.5-0.8B 的 LoRA `adapter_v1.zip`（与 `qwen35-08b-ime-v1-Q8_0.gguf` 同一份权重），底座 Hugging Face `Qwen/Qwen3.5-0.8B`（`2fc0636`） | 812 MB（GGUF） | GGUF `da81b612…49dd`，adapter `412f58aa…c0dc`，底座 `04b1c301…4696` | 同左 | 代码 MIT；底座 Apache-2.0 |
 | rime-llm-reranker | [FuJiK0/rime-llm-reranker](https://github.com/FuJiK0/rime-llm-reranker)（`700ad82`）：不训练，默认用 Qwen3.5-0.8B（同上的底座） | 1.75 GB（bf16） | 同上底座 | 同左 | MIT；底座 Apache-2.0 |
 | LIME | [xushengfeng/lime](https://github.com/xushengfeng/lime)（`7d5a82d`）的 `lime-v1` 算法：不训练，用 Qwen3-0.6B（它跑 `unsloth/Qwen3-0.6B-GGUF` 的 IQ4_XS；这里用 Hugging Face `Qwen/Qwen3-0.6B` `c1899de` 的 bf16 权重） | 368 MB（IQ4_XS） | `f47f7117…874b`（bf16） | 同左 | 代码 GPL-3.0；模型 Apache-2.0 |
+| rime-llm-rerank（zhanghaozhecn） | [zhanghaozhecn/rime-llm-rerank](https://github.com/zhanghaozhecn/rime-llm-rerank)（`73c7282`，小狼毫插件；源码版 [rime-llm-ime](https://github.com/zhanghaozhecn/rime-llm-ime) 打分相同）：不训练，默认模型 `Qwen3-0.6B-Base-Q4_K_M.gguf`（ModelScope `zhanghaozhecn/Qwen3-0.6B-Base-GGUF`，作者从 Qwen/Qwen3-0.6B-Base 量化） | 397 MB | `5dd353df…a036` | 同左 | 插件为作者的署名许可（商用须注明来源），rime-llm-ime 为 GPL-3.0；模型 Apache-2.0 |
+| 水杉 rerank-v2 8x448 | [metasequoiaime/chinese-ime-lm](https://github.com/metasequoiaime/chinese-ime-lm) Release `rerank-v2`（2026-11-04）的 `rerank-8x448.ort` 及其 `.model.json`、`.vocab.json`：从 rerank-v1 接着用单人连发的聊天训练，再和 v1 做权重插值，结构、格式、用法与 v1 相同 | 31 MB | `827d9eca…e58f` | 同左 | Apache-2.0 |
+| 水杉 rerank-v2 6x256 | 同上，`rerank-6x256.ort` | 8.2 MB | `e036febf…fc6c` | 同左 | Apache-2.0 |
 | 水杉 rerank-v1 8x448 | [metasequoiaime/chinese-ime-lm](https://github.com/metasequoiaime/chinese-ime-lm) Release `rerank-v1`（2026-11-01）的 `rerank-8x448.ort` 及其 `.model.json`、`.vocab.json` | 31 MB | `ad729f94…4a93` | 同左 | Apache-2.0 |
 | 水杉 rerank-v1 6x256 | 同上，`rerank-6x256.ort` | 8.2 MB | `ceeb3a8d…bad4` | 同左 | Apache-2.0 |
 | 水杉 model-v1 25M | 同一仓库 Release `model-v1`（2026-09-18）的 `sentence-model-desktop.safetensors`（即 Hugging Face `pinyin-ime-reranker-25M`），整句重排模型 | 25 MB | `0a6ecba6…b469` | 同左 | Apache-2.0 |
@@ -36,6 +41,7 @@
 | 青简 含章·知微 | 同一仓库 Release `data-v7`（2026-10-13）的 `hanzhang-zhiwei-small.qjm`：字级 GPT，8 层 × 448，按上文给候选打分；0.3.2 起已下线 | 56 MB | `83ad55ab…b0ef`（包 `e259f8bc…9e40`） | 同左 | GPL-3.0-or-later |
 | 幽默输入法 句子模型 25M | [Sraw/youmo-ime](https://github.com/Sraw/youmo-ime) Release `sentence-models-20261001` 的 `sentence-model-large.safetensors` | 25 MB | `6f7fcb72…669a` | 同左 | Apache-2.0 |
 | 知字输入法 顺手·知字 30M | Hugging Face [`DabbleCove/shunshou-zhizi-30m`](https://huggingface.co/DabbleCove/shunshou-zhizi-30m)（`b74f570`）的 `zhizi30m_v2.onnx` 和 `itos.json`：字级 GPT，8 层 × 512，字表 7,745；输入法 [lihytaihe-lang/zhizi](https://github.com/lihytaihe-lang/zhizi) 0.1.5 | 133 MB | `07c8a48d…358b` | 同左 | 权重 CC BY-SA 4.0；输入法代码 Apache-2.0 |
+| WowType 整句增强模型 | [Gloridust/WowType](https://github.com/Gloridust/WowType)（代码 `bb2a04f`）Release `nnlm-2026.11.17` 的 `nnlm.bin.xz` 解压：字级 GPT-2，3 层 × 256，字表 6,998，float16，语料 LCCC + 中文维基；新出的 Windows 输入法 [FreeType](https://github.com/OUBIGFA/FreeType) 也原样带着这份文件 | 8.6 MB | `d50289df…b52b` | 同左 | 权重 CC BY-SA 4.0 |
 | 吵吵拼音 CLMG v2 | [yangchaoliuyang/chaoinput](https://github.com/yangchaoliuyang/chaoinput) Release `v3.3.16`：`ChaoInput-v3.3.16-win64.zip` 里的 `data/lmt.bin` 和 `data/dict.db`，结构按源码包的 `ChaoInput.LmTrain.Gpu/model.py` | 115 MB（`lmt.bin`） | `f9052324…f8b8`（`dict.db` `51fd6c85…fd1b`） | 同左 | MIT |
 | CNMBert | Hugging Face `Midsummra/CNMBert`（`7802eae`）的 `model.safetensors`：BERT 1.31 亿参数，把拼音首字母还原成汉字；代码 [IgarashiAkatuki/zh-CN-Multi-Mask-Bert](https://github.com/IgarashiAkatuki/zh-CN-Multi-Mask-Bert) | 523 MB | `89761d19…4ab2` | Feng 等，IJCNN 2025 | AGPL-3.0 |
 | Qwen3.5-2B-Base（参考） | Hugging Face `Qwen/Qwen3.5-2B-Base` | 4.55 GB | `928acbf1…df2d` | 通义千问 | Apache-2.0 |
@@ -55,12 +61,14 @@
 | Rime-AI-IME | 上文最后 60 字（它的 `context_length`） | 所打的拼音原样写进提示词 | 候选用顿号列在提示词里，按它 `sidecar.py` 的系统 / 用户提示词，不开思考 | log P(模型答出该候选 + 结束符) |
 | rime-llm-reranker | 同上 | 同上 | 按它 `rime.lua` 的提示词（要求按顺序列出前 5 个） | log P(模型把该候选列在第一个 + 顿号) |
 | LIME | 它的开头语「下面的内容主题多样」加上文，没有起始符（同其 `init_ctx`） | 不给（它在生成时按拼音筛词元，这里只给候选打分） | 上文加候选整串一起分词 | log P(上文 + 候选) − log P(上文) |
-| 水杉 rerank-v1 | `<bos>` 加最后 64 字 | 不给，它是字级语言模型 | 按它运行时逐键的方式：候选截成 1 字、2 字……逐页喂入，前缀共用缓存 | 最后一页的分数（每字平均 log P） |
+| rime-llm-rerank（zhanghaozhecn） | 上文去掉空白后的最后 20 个词元（它 2026-11-19 起的默认 `max_tokens`），没有起始符；**没有上文时它不重排**，这些行按引擎原顺序计 | 不给 | 每个候选单独分词接在上文后，只算前 3 个词元 | −(1.0 × CE₁ + 1.10 × CE₂ + 0.60 × CE₃)，照它 `rime_llm.cpp` 的 `score_batch`；不加它的词频融合 |
+| 水杉 rerank-v1、v2 | `<bos>` 加最后 64 字 | 不给，它是字级语言模型 | 按它运行时逐键的方式：候选截成 1 字、2 字……逐页喂入，前缀共用缓存 | 最后一页的分数（每字平均 log P） |
 | 水杉 model-v1 | `<bos>` 加上文末尾，长度给最长的候选留出位置 | 不给 | 候选逐字接在上文后 | 每字平均 log P（格式参考实现的 `SentenceModel::score`） |
 | 青简 含章·通变 | 不看上文 | 所打的按键（它的 P2C：`<eos> 按键 <sep> 汉字`） | 每个候选逐字强制喂入 | 各字 log P 之和；用青简自己的 `CharScorer::score_p2c` |
 | 青简 含章·知微 | `<eos>` 加上文（按模型的 128 上下文从左边截） | 不看按键 | 候选逐字接在上文后 | 各字 log P 之和；用青简自己的 `CharScorer::score` |
 | 幽默 | 只给上文最后一行（去掉 `[URL]` 和换行，它的词表里没有） | 不给 | 候选逐字接在上文后 | 各字 log P 之和 |
 | 知字 | `<bos>` 加上文最后一行的末尾，最多 32 字，并给最长的候选留出位置（模型输入固定 40 位）；同其 `ContextRankingScorer`，字表外的字记 `<unk>` | 不给 | 每 8 个候选一批，逐字接在上文后 | 各字 log P 之和 |
+| WowType | `<s>` 加上文最后一行的最后 24 个字（去掉空白，同其 `context_tokens`） | 不给 | 候选逐字接在上文后，字表外的字记 `<unk>` | 各字 log P 之和（同其 `score_tokens`） |
 | 吵吵 | 最后 64 字 | 只用来查它词典里这个候选的词频 | 每个候选单独算 | log(10 + 词频) + 上文向量 · 候选字向量的平均 |
 | CNMBert | `[CLS]` 加上文（共 64 个 token 以内） | 每个首字母一个专用遮罩 token（同其 `predict`） | 遮罩从左到右逐个填入候选的字，每步在整个词表上算 | 各步 log P 之和；**只测只打首字母的行** |
 | Qwen3.5-2B（参考） | `<\|endoftext\|>` 加上文 | 不给 | 上文加候选整串一起分词 | log P(上文 + 候选) − log P(上文) |
@@ -77,8 +85,11 @@
 - PinyinGPT 的拼音表里没有某个字的这个读音时，把这个字加进该位置允许的字里，不让它直接得零分；它拼不出的候选（拉丁字母、词表外的字）记 −1e4，这些候选在两套题里都不是答案。
 - 水杉、幽默在各自的输入法里还要加上解码器 / n-gram 的分数，这里只比模型本身，不能代表它们输入法的整体表现。
 - **知字**：它在输入法里默认关闭（实验开关），打开后只在同读音、同长度的一组候选里重排，取「模型分 − 2 × 词库原排名」最高的；这里只比模型本身。它的输入法只记同一个程序里最近上屏的 32 个字作为上文，这里给的是测试集的上文（最后一行，最多 32 字）。
+- **rime-llm-rerank（zhanghaozhecn）**：和上面的 rime-llm-reranker（FuJiK0）不是同一个项目。它在输入法里先按词频取前 6 个候选给模型，再把模型分和词频按 β = 14 融合，这里只比模型本身、给每行全部候选打分。为了快，它只看候选的前 3 个词元和上文的最后 20 个词元，所以长句吃亏（v3 长句 89.1，同用 Qwen3-0.6B 的 LIME 为 98.3）。没有上文的行它不重排，这里按引擎原顺序计（v4 有 1,234 行、v5 有 1,813 行；v5 上引擎原顺序是 0，所以它在 v5 无上文一栏为 0）。这里在 GPU 上用 transformers 把它的 Q4_K_M 权重还原成 fp32 运行，权重和它在 llama.cpp 里用的相同，激活的精度不同。
+- **水杉 rerank-v2**：专门针对单人连发的聊天上文训练。和 v1 比，8x448 在 v4（聊天）上 87.6 → 89.6，v2、v3 网页题 90.0 → 90.4、91.2 → 91.3。
+- **WowType**：它在输入法里用这个模型给束搜索的前 8 条整句重排（权重 1.5，没有上文时只用于 5 个音节以上的输入），这里只比模型本身；它的词级模型在 [n-gram 对比](../ngram/) 里。它的语料有 LCCC，v4 对它是领域内（v4 89.5，v2、v3 为 79.3、80.7），v4 和三套平均分受此影响。
 - PinyinGPT、GPT2-zh-21k 为 CC BY-NC-SA 4.0，CNMBert 为 AGPL-3.0，这里只做评测，不分发它们的权重。
-- v3 是 2026 年 10 月的网页，晚于各家的训练数据；知意 1103 两个模型、zh-lite-preview、zh-lite-next-preview 和 zhen-mini-next-preview 训练时没有用到 v2、v3、v1 的任何内容。
+- v3 是 2026 年 10 月的网页，晚于各家的训练数据；知意 1103 两个模型、zh-lite-preview、zh-lite-next-preview、zhen-mini-next-preview 及其 1116 / 1120 版训练时没有用到 v2、v3、v1 的任何内容（1120 新加的训练文本最晚是 FineWeb 的 CC-MAIN-2025-26，v2、v3、v5 取自 2026 年的抓取）。
 
 ## 结果：选词（首选准确率 %）
 
@@ -87,6 +98,8 @@
 | 行数 | 5,211 | 10,388 | 7,423 | 709 | 2,256 | 7,735 | 913 | 1,740 |
 | 知意 ML-pumpkin-1103 | 93.5 | 93.8 | 95.3 | 83.9 | 92.2 | 93.5 | 95.1 | 94.7 |
 | 知意 ML-Flash-1103 | 93.3 | 93.3 | 95.0 | 82.4 | 91.2 | 92.9 | 93.5 | 94.9 |
+| 知意 zh-lite-next-preview-1120 | 93.0 | 93.6 | 95.1 | 85.9 | 91.4 | 93.3 | 94.3 | 94.6 |
+| 知意 zhen-mini-next-preview-1116 | 93.2 | 93.2 | 94.7 | 85.0 | 91.0 | 92.9 | 93.6 | 94.2 |
 | 知意 zh-lite-next-preview | 93.0 | 93.0 | 94.7 | 84.5 | 90.0 | 92.8 | 93.6 | 93.7 |
 | 知意 zhen-mini-next-preview | 93.5 | 93.0 | 94.4 | 85.0 | 90.6 | 92.8 | 93.4 | 93.6 |
 | 知意 zh-lite-preview | 92.6 | 92.8 | 94.4 | 84.2 | 90.3 | 92.4 | 93.5 | 94.2 |
@@ -97,6 +110,9 @@
 | Rime-AI-IME Qwen3.5-0.8B + LoRA | 90.4 | 92.1 | 93.3 | 83.8 | 90.6 | 92.3 | 91.9 | 91.3 |
 | rime-llm-reranker Qwen3.5-0.8B | 48.1 | 51.9 | 55.9 | 35.1 | 44.1 | 49.7 | 56.2 | 59.6 |
 | LIME Qwen3-0.6B | 96.6 | 96.4 | 97.0 | 92.9 | 95.4 | 95.8 | 97.5 | 98.3 |
+| rime-llm-rerank（zhanghaozhecn）Qwen3-0.6B-Base | 90.9 | 92.1 | 92.4 | 89.1 | 92.1 | 92.3 | 95.7 | 89.1 |
+| 水杉 rerank-v2 8x448 | 90.4 | 91.3 | 92.7 | 81.5 | 89.6 | 90.4 | 93.2 | 94.3 |
+| 水杉 rerank-v2 6x256 | 88.7 | 90.5 | 92.2 | 79.5 | 88.3 | 89.3 | 92.9 | 94.2 |
 | 水杉 rerank-v1 8x448 | 90.0 | 91.2 | 92.7 | 82.1 | 89.1 | 90.2 | 93.5 | 94.3 |
 | 水杉 rerank-v1 6x256 | 88.6 | 90.0 | 91.9 | 78.7 | 87.5 | 88.8 | 93.1 | 93.9 |
 | 水杉 model-v1 25M | 80.0 | 81.7 | 83.4 | 68.1 | 80.1 | 79.8 | 87.0 | 87.2 |
@@ -105,6 +121,7 @@
 | 青简 含章·通变 | 69.6 | 71.7 | 80.0 | 29.3 | 57.6 | 68.1 | 78.5 | 84.1 |
 | 幽默输入法 句子模型 25M | 86.8 | 86.8 | 89.5 | 70.1 | 83.2 | 85.8 | 89.6 | 89.7 |
 | 知字输入法 顺手·知字 30M | 84.9 | 86.2 | 89.0 | 70.2 | 82.1 | 85.3 | 89.7 | 88.6 |
+| WowType 整句增强模型 nnlm.bin | 79.3 | 80.7 | 84.3 | 59.4 | 75.2 | 79.7 | 84.6 | 82.8 |
 | 吵吵拼音 CLMG v2 | 67.2 | 73.1 | 82.1 | 50.9 | 50.7 | 77.2 | 66.3 | 58.8 |
 | CNMBert（只测首字母行） | — | — | — | 60.5 | — | — | — | — |
 | Qwen3.5-2B-Base（参考：通用语言模型） | **97.8** | **97.7** | **98.0** | **95.6** | **97.3** | **97.3** | **98.7** | **98.7** |
@@ -126,16 +143,21 @@ v4 是聊天（LCCC 对话，上文是前面几句话，79% 的计分行是单�
 | 引擎原顺序 | 79.4 | 79.3 | 45.4 | 78.1 | 0 | 0 | 0 | 0 | 0 | 0 |
 | 知意 ML-pumpkin-1103 | 90.9 | 84.8 | 74.5 | 89.5 | 72.5 | 62.7 | 71.7 | 85.1 | 61.6 | 66.4 |
 | 知意 ML-Flash-1103 | 90.9 | 84.8 | 75.9 | 89.3 | 71.2 | 62.2 | 70.3 | 83.1 | 61.2 | 65.4 |
+| 知意 zh-lite-next-preview-1120 | **92.0** | **88.2** | 76.8 | 90.1 | 71.1 | 61.9 | 70.7 | 82.5 | 59.9 | 64.8 |
+| 知意 zhen-mini-next-preview-1116 | 91.1 | 85.3 | 75.3 | 89.0 | 70.4 | 61.2 | 68.7 | 83.4 | 61.2 | 64.9 |
 | 知意 zh-lite-next-preview | 90.8 | 85.0 | 75.3 | 88.5 | 70.2 | 60.9 | 69.3 | 82.3 | 60.5 | 63.6 |
-| 知意 zhen-mini-next-preview | **91.1** | 85.3 | 76.6 | 89.3 | 70.4 | 60.6 | 69.6 | 82.9 | 61.2 | 64.7 |
+| 知意 zhen-mini-next-preview | 91.1 | 85.3 | 76.6 | 89.3 | 70.4 | 60.6 | 69.6 | 82.9 | 61.2 | 64.7 |
 | 知意 zh-lite-preview | 91.0 | 85.0 | 75.8 | 88.0 | 70.0 | 61.2 | 68.6 | 82.1 | 60.6 | 64.0 |
-| 知意 ML-pumpkin-1026 | 90.7 | **87.1** | **77.0** | 89.0 | 69.3 | 55.5 | 70.3 | 84.5 | 54.5 | 62.6 |
+| 知意 ML-pumpkin-1026 | 90.7 | 87.1 | 77.0 | 89.0 | 69.3 | 55.5 | 70.3 | 84.5 | 54.5 | 62.6 |
 | 知意 ML-Flash-1031 | 90.8 | 86.8 | 76.2 | 89.5 | 68.2 | 54.3 | 69.5 | 83.0 | 56.7 | 60.9 |
 | PinyinGPT-Concat（腾讯） | 89.0 | 77.6 | 73.2 | 88.1 | 73.9 | 59.2 | 76.3 | 88.2 | 65.1 | 67.7 |
 | GPT2-zh-21k（PinyinGPT 论文的冻结 GPT） | 85.3 | 74.6 | 63.6 | 85.0 | 70.0 | 55.4 | 72.2 | 84.5 | 62.7 | 62.3 |
 | Rime-AI-IME Qwen3.5-0.8B + LoRA | 79.4 | 56.8 | 56.5 | 73.1 | 63.7 | 45.1 | 67.5 | 81.2 | 55.1 | 59.9 |
 | rime-llm-reranker Qwen3.5-0.8B | 52.6 | 37.8 | 38.0 | 53.6 | 24.7 | 22.1 | 22.5 | 30.6 | 17.3 | 22.8 |
 | LIME Qwen3-0.6B | 85.8 | 65.6 | 65.6 | 86.4 | 78.8 | **63.8** | 81.6 | 93.0 | 66.4 | 71.7 |
+| rime-llm-rerank（zhanghaozhecn）Qwen3-0.6B-Base | 81.6 | 79.3 | 66.0 | 76.7 | 37.7 | 0.0 | 53.4 | 63.2 | 47.8 | 52.1 |
+| 水杉 rerank-v2 8x448 | 89.6 | 81.8 | **77.2** | 91.7 | 72.6 | 62.1 | 73.7 | 83.6 | 64.8 | 66.3 |
+| 水杉 rerank-v2 6x256 | 88.3 | 81.8 | 74.6 | 90.1 | 69.3 | 59.5 | 69.9 | 80.1 | 59.1 | 62.9 |
 | 水杉 rerank-v1 8x448 | 87.6 | 81.0 | 75.3 | 90.9 | 72.6 | 62.2 | 73.5 | 83.8 | 64.0 | 66.0 |
 | 水杉 rerank-v1 6x256 | 87.1 | 81.5 | 73.6 | 90.2 | 69.1 | 58.7 | 70.4 | 79.9 | 58.5 | 62.3 |
 | 水杉 model-v1 25M | 86.4 | 83.5 | 73.7 | 89.3 | 62.1 | 54.1 | 62.7 | 70.8 | 53.3 | 57.2 |
@@ -144,6 +166,7 @@ v4 是聊天（LCCC 对话，上文是前面几句话，79% 的计分行是单�
 | 青简 含章·通变 | 70.5 | 74.7 | 31.1 | 77.7 | 55.3 | 54.9 | 55.0 | 56.2 | 37.6 | 43.3 |
 | 幽默输入法 句子模型 25M | 81.3 | 75.5 | 59.5 | 81.9 | 65.9 | 57.3 | 67.8 | 73.9 | 54.1 | 59.1 |
 | 知字输入法 顺手·知字 30M | 81.5 | 75.3 | 60.5 | 79.5 | 63.9 | 55.9 | 65.7 | 71.1 | 51.6 | 57.1 |
+| WowType 整句增强模型 nnlm.bin | 89.5 | 86.7 | 75.8 | 90.0 | 52.6 | 44.1 | 54.4 | 60.5 | 39.4 | 45.9 |
 | 吵吵拼音 CLMG v2 | 67.4 | 39.9 | 33.2 | 43.6 | 37.9 | 24.2 | 39.6 | 51.9 | 34.6 | 37.7 |
 | CNMBert（只测首字母行） | — | — | 62.7 | — | — | — | — | — | 40.6 | — |
 | Qwen3.5-2B-Base（参考：通用语言模型） | 87.3 | 54.7 | 69.6 | 89.4 | **80.3** | 62.7 | **84.8** | **95.8** | **70.5** | **72.6** |
@@ -159,6 +182,8 @@ v4 是聊天（LCCC 对话，上文是前面几句话，79% 的计分行是单�
 |---|---|---|---|
 | 知意 ML-pumpkin-1103 | 83 MB（1.10） | 80.8M（1.10） | 3.6 G（1.40） |
 | 知意 ML-Flash-1103 | 75 MB（1.00） | 73.2M（1.00） | 2.6 G（1.00） |
+| 知意 zh-lite-next-preview-1120 | 51 MB（0.68） | 49.3M（0.67） | 738 M（0.29） |
+| 知意 zhen-mini-next-preview-1116 | 12 MB（0.16） | 17.6M（0.24） | 739 M（0.29） |
 | 知意 zh-lite-next-preview | 51 MB（0.68） | 49.3M（0.67） | 738 M（0.29） |
 | 知意 zhen-mini-next-preview | 12 MB（0.16） | 17.6M（0.24） | 739 M（0.29） |
 | 知意 zh-lite-preview | 26 MB（0.34） | 23.7M（0.32） | 738 M（0.29） |
@@ -169,6 +194,9 @@ v4 是聊天（LCCC 对话，上文是前面几句话，79% 的计分行是单�
 | Rime-AI-IME Qwen3.5-0.8B + LoRA | 812 MB（10.77） | 752.4M（10.28） | 15.1 G（5.87） |
 | rime-llm-reranker Qwen3.5-0.8B | 1.75 GB（23.17） | 752.4M（10.28） | 15.1 G（5.87） |
 | LIME Qwen3-0.6B | 368 MB（4.88） | 596.0M（8.15） | 44.5 G（17.29） |
+| rime-llm-rerank（zhanghaozhecn）Qwen3-0.6B-Base | 397 MB（5.26） | 596.0M（8.15） | 12.4 G（4.82） |
+| 水杉 rerank-v2 8x448 | 31 MB（0.41） | 24.9M（0.34） | 1.4 G（0.56） |
+| 水杉 rerank-v2 6x256 | 8.2 MB（0.11） | 7.9M（0.11） | 333 M（0.13） |
 | 水杉 rerank-v1 8x448 | 31 MB（0.41） | 24.9M（0.34） | 1.4 G（0.56） |
 | 水杉 rerank-v1 6x256 | 8.2 MB（0.11） | 7.9M（0.11） | 333 M（0.13） |
 | 水杉 model-v1 25M | 25 MB（0.34） | 24.9M（0.34） | 2.6 G（1.02） |
@@ -177,13 +205,14 @@ v4 是聊天（LCCC 对话，上文是前面几句话，79% 的计分行是单�
 | 青简 含章·通变 | 46 MB（0.61） | 23.0M（0.31） | 518 M（0.20） |
 | 幽默输入法 句子模型 25M | 25 MB（0.34） | 24.7M（0.34） | 985 M（0.38） |
 | 知字输入法 顺手·知字 30M | 133 MB（1.76） | 29.3M（0.40） | 853 M（0.33） |
+| WowType 整句增强模型 nnlm.bin | 8.6 MB（0.11） | 4.3M（0.06） | 93 M（0.04） |
 | 吵吵拼音 CLMG v2 | 115 MB（1.52） | 28.7M（0.39） | 1.2 G（0.47） |
 | CNMBert（只测首字母行） | 523 MB（6.93） | 130.6M（1.79） | 172.6 G（67.03） |
 | Qwen3.5-2B-Base（参考：通用语言模型） | 4.55 GB（60.32） | 1.88B（25.72） | 124.0 G（48.15） |
 
-- 文件大小：各家实际用的模型文件。知意为 int8 ONNX（zhen-mini-next-preview 为 4 位 ONNX，含续写），水杉 rerank-v1 为 `.ort`，水杉 model-v1 和幽默为 int8 safetensors，青简为 f16 的 `.qjm`，知字为 fp32 ONNX（Windows 版用它，macOS 用 Core ML fp16），吵吵为 fp32 的 `lmt.bin`（不含词典 `dict.db`），PinyinGPT / GPT2 / CNMBert 为 fp32 权重，Rime-AI-IME 为它发布的 Q8_0 GGUF，rime-llm-reranker 为 bf16（它默认的 MLX bf16），LIME 为它跑的 IQ4_XS GGUF，Qwen 2B 为 bf16 且含视觉部分。
-- 总参数量：文件里的张量个数。知意按 ONNX 的权重数，其中约 4,875 万是词嵌入（zh-lite-preview 约 1,632 万，zh-lite-next-preview 约 4,195 万：多留了英文词元；zhen-mini-next-preview 约 819 万，3.2 万词元）；zhen-mini-next-preview 的文件和参数量包括续写解码器（约 234 万），4 位矩阵按 K × N 计数；水杉 rerank-v1 的 `.ort` 无法直接读出张量，按其 `model.json` 的结构算；Qwen 系列只算语言模型部分，绑定的输出层不重复计；知字的 ONNX 里绑定的输出层多存了一份，同样只计一次。
-- 理论计算量：从头给一行的整串候选打分的乘加次数，按 v3 计分行平均（`cost.py`）。上文只算一次（因果模型的上文 K/V 各候选共用），各词元过线性层，注意力按各词元看到的长度算，逐字算整个词表 softmax 的模型另加输出层（水杉 6x256 是自归一化的，只算候选字那一项）。两个 Rime 插件为提示词（含候选列表）算一次、再加各候选的回答；CNMBert 每个候选每个字一次完整前向（只算首字母行）。知意为整页一次前向（编码器 + 选词头，不算组句头）；在输入法里知意 Flash 的上文可以缓存，这里没有扣除。
+- 文件大小：各家实际用的模型文件。知意为 int8 ONNX（zhen-mini-next-preview 为 4 位 ONNX，含续写），水杉 rerank-v1、v2 为 `.ort`，水杉 model-v1 和幽默为 int8 safetensors，青简为 f16 的 `.qjm`，知字为 fp32 ONNX（Windows 版用它，macOS 用 Core ML fp16），吵吵为 fp32 的 `lmt.bin`（不含词典 `dict.db`），PinyinGPT / GPT2 / CNMBert 为 fp32 权重，Rime-AI-IME 为它发布的 Q8_0 GGUF，rime-llm-reranker 为 bf16（它默认的 MLX bf16），LIME 为它跑的 IQ4_XS GGUF，rime-llm-rerank 为它默认的 Q4_K_M GGUF，WowType 为 float16 的 `nnlm.bin`，Qwen 2B 为 bf16 且含视觉部分。
+- 总参数量：文件里的张量个数。知意按 ONNX 的权重数，其中约 4,875 万是词嵌入（zh-lite-preview 约 1,632 万，zh-lite-next-preview 约 4,195 万：多留了英文词元；zhen-mini-next-preview 约 819 万，3.2 万词元）；zhen-mini-next-preview 的文件和参数量包括续写解码器（约 234 万），4 位矩阵按 K × N 计数；水杉 rerank-v1、v2 的 `.ort` 无法直接读出张量，按其 `model.json` 的结构算；rime-llm-rerank 从 GGUF 数张量（输出层与词嵌入绑定，没有另存）；Qwen 系列只算语言模型部分，绑定的输出层不重复计；知字的 ONNX 里绑定的输出层多存了一份，同样只计一次。
+- 理论计算量：从头给一行的整串候选打分的乘加次数，按 v3 计分行平均（`cost.py`）。上文只算一次（因果模型的上文 K/V 各候选共用），各词元过线性层，注意力按各词元看到的长度算，逐字算整个词表 softmax 的模型另加输出层（水杉 6x256 是自归一化的，只算候选字那一项）。两个 Rime 插件为提示词（含候选列表）算一次、再加各候选的回答；CNMBert 每个候选每个字一次完整前向（只算首字母行）；rime-llm-rerank 只算上文最后 20 个词元一次、再加各候选的前 3 个词元，没有上文的行它不运行，记 0。知意为整页一次前向（编码器 + 选词头，不算组句头）；在输入法里知意 Flash 的上文可以缓存，这里没有扣除。
 
 ## 结果：组句（P@1 / P@5 %）
 
@@ -206,7 +235,7 @@ v4 是聊天（LCCC 对话，上文是前面几句话，79% 的计分行是单�
 
 ## 复现
 
-需要 Python 3、numpy、PyTorch（CUDA）、transformers、peft、safetensors、tokenizers、pypinyin、onnx、onnxruntime；知意的 ONNX 在 DirectML 上跑时用 onnxruntime-directml（加 `--cpu` 则用 CPU），所以分两个环境跑。青简另需按 [`qingjian/README.md`](qingjian/README.md) 在青简源码里编出 `qj-score`。先下载上表的文件，解开知意的 int8 zip、吵吵的两个 zip、Rime-AI-IME 的 `adapter_v1.zip` 和青简的数据包：
+需要 Python 3、numpy、PyTorch（CUDA）、transformers、peft、safetensors、tokenizers、pypinyin、onnx、onnxruntime、gguf；知意的 ONNX 在 DirectML 上跑时用 onnxruntime-directml（加 `--cpu` 则用 CPU），所以分两个环境跑。青简另需按 [`qingjian/README.md`](qingjian/README.md) 在青简源码里编出 `qj-score`。先下载上表的文件，解开知意的 int8 zip、吵吵的两个 zip、Rime-AI-IME 的 `adapter_v1.zip` 和青简的数据包：
 
 ```bash
 python run.py --v2 neutral-v2.jsonl --v3 neutral-v3.jsonl --zhiyi zhiyi-pumpkin-1026=laya-ml-pumpkin-1026-int8g --zhiyi zhiyi-flash-1031=laya-ml-flash-1031-int8g --metasequoia rerank-v1
@@ -230,7 +259,11 @@ zh-lite-next-preview：同上，`--zhiyi zhiyi-zh-lite-next-preview=laya-zh-lite
 
 zhen-mini-next-preview：同上，`--zhiyi zhiyi-zhen-mini-next-preview=laya-zhen-mini-next-preview-w4 --cpu`（`run.py` 和 `cost.py`；`zhiyi.py` 认出单文件后在 CPU 上按上文、按键两步打分）。
 
+zh-lite-next-preview-1120 和 zhen-mini-next-preview-1116：`python run.py --v2 neutral-v2.jsonl --v3 neutral-v3.jsonl --v4 neutral-v4.jsonl --v5 neutral-v5.jsonl --zhiyi zhiyi-zh-lite-next-preview-1120=laya-zh-lite-next-preview-1120-int8g`，Mini 另跑一次 `--zhiyi zhiyi-zhen-mini-next-preview-1116=laya-zhen-mini-next-preview-1116-w4 --cpu`；`cost.py` 加同样的 `--zhiyi`。图里知意只留 ML-pumpkin-1103、ML-Flash-1103（大小和计算量的 1.0 基准）和最新的 zh-lite-next-preview-1120、zhen-mini-next-preview-1116；zh-lite-next-preview 每套都不如 1120（计算量相同），zhen-mini-next-preview 与 1116 相差不超过 0.3，较早的版本只留在上面的表里。
+
 v4、v5 的打分：上面三条 `run.py` 命令都加上 `--v4 neutral-v4.jsonl --v5 neutral-v5.jsonl`（已有的 v2、v3 分数文件会直接沿用），另加 `--zhiyi zhiyi-pumpkin-1103=… --zhiyi zhiyi-flash-1103=… --zhizi shunshou-zhizi-30m`。
+
+水杉 rerank-v2、WowType、rime-llm-rerank（zhanghaozhecn）：先解开 WowType 的 `nnlm.bin.xz`，再 `python run.py --v2 neutral-v2.jsonl --v3 neutral-v3.jsonl --v4 neutral-v4.jsonl --v5 neutral-v5.jsonl --metasequoia-v2 rerank-v2 --wowtype nnlm.bin --llm-rerank <目录>,Qwen3-0.6B-Base-Q4_K_M.gguf`，`cost.py` 加同样的三个选项。
 
 其他选项：`run.py --context_chars 100` 只给知意最后 100 字上文（结果名加 `-ctx100`）；`run.py --pinyingpt-typed <目录>` 按所打的样子给 PinyinGPT 喂拼音（`pinyingpt-concat-typed`）。组句用 `compose.py --v1 <v1 测试集> --zhiyi … --pinyingpt … --gpt2-zh-21k …`。
 
@@ -246,12 +279,14 @@ v4、v5 的打分：上面三条 `run.py` 命令都加上 `--v4 neutral-v4.jsonl
 | `pinyingpt.py` | PinyinGPT-Concat / GPT2-zh-21k：受约束的候选打分和 beam search |
 | `chat_judge.py` | Rime-AI-IME（底座 + LoRA）与 rime-llm-reranker：各自的提示词，答出每个候选的概率 |
 | `qwen.py` | Qwen 的 log P(上文 + 候选) − log P(上文)；LIME 用同一份代码加它的开头语 |
-| `metasequoia.py` | 水杉 rerank-v1 `.ort` 的逐键打分 |
+| `metasequoia.py` | 水杉 rerank-v1、v2 `.ort` 的逐键打分 |
 | `metaseq_v1.py` | 水杉 model-v1（chinese-ime-lm 格式）的整句打分 |
 | `qingjian.py`、`qingjian/` | 青简：调用 `qj-score`（在青简源码里编译的 Rust 小工具，直接用青简的 `CharScorer` 和 `BigramModel`） |
 | `cnmbert.py` | CNMBert 的首字母遮罩逐字填充打分 |
 | `youmo.py` | 幽默句子模型（chinese-ime-lm 格式）的 PyTorch 实现和打分 |
 | `zhizi30m.py` | 知字 30M：用 onnxruntime（CPU）跑它的 ONNX，按它的输入格式打分 |
+| `wowtype_nnlm.py` | WowType 整句增强模型：读它的 WTNN 文件，PyTorch（CPU）实现前向，按它的上文规则打分 |
+| `llm_rerank.py` | rime-llm-rerank（zhanghaozhecn）：transformers 读它的 GGUF，按它的上文截断和前 3 个词元的加权交叉熵打分 |
 | `chaoinput.py` | 吵吵 CLMG v2（`lmt.bin`）和词典先验 |
 | `scores/` | 每个模型在每套题（v2–v5）上的分数，`{"id", "scores"}`，不比的候选为 null；含 `-ctx100` 和 `pinyingpt-concat-typed` 两种附加测试 |
 | `results.json` | 各组的行数和准确率；`compose` 为组句的 P@1 / P@5 |
